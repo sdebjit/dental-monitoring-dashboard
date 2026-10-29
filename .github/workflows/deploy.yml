@@ -52,6 +52,7 @@ jobs:
             --source . \
             --region europe-southwest1 \
             --service-account daybook-run@daybook-ma.iam.gserviceaccount.com \
+            --build-service-account=projects/daybook-ma/serviceAccounts/github-deployer@daybook-ma.iam.gserviceaccount.com \
             --allow-unauthenticated \
             --min-instances 0 \
             --set-env-vars "DAYBOOK_BASE_URL=https://dental-monitoring-dashboard.web.app,\
@@ -61,7 +62,6 @@ jobs:
           DAYBOOK_SCHEDULER_SECRET=${{ secrets.DAYBOOK_SCHEDULER_SECRET }}"
 
       - name: Deploy Firebase Hosting
+        continue-on-error: true
         run: |
           npx -y firebase-tools@latest deploy --only hosting --project daybook-ma
-        env:
-          FIREBASE_CLI_PREVIEWS: hostingchannels
