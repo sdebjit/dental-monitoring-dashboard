@@ -9,8 +9,7 @@ import { DriveStore } from './drive-store.mjs';
 import { ingestFolder } from './drive-pipeline.mjs';
 
 const ROOT = new URL('../public/', import.meta.url);
-const SESSION = 'daybook_session';
-const OAUTH = 'daybook_oauth';
+const SESSION = '__session';
 const SCOPES = ['openid', 'email', 'profile', 'https://www.googleapis.com/auth/drive'];
 
 function settings(env) {
@@ -28,6 +27,16 @@ function cookie(req, name) {
 }
 function setCookie(name, value, secure, maxAge) {
   return `${name}=${value}; Path=/; HttpOnly; SameSite=Lax; ${secure ? 'Secure; ' : ''}Max-Age=${maxAge}`;
+}
+function getSessionToken(req) {
+  const token = cookie(req, SESSION);
+  if (token && !token.startsWith('oauth:')) return token;
+  return cookie(req, 'daybook_session');
+}
+function getOauthState(req) {
+  const sessionVal = cookie(req, SESSION);
+  if (sessionVal) return sessionVal.startsWith('oauth:') ? sessionVal.slice(6) : sessionVal;
+  return cookie(req, 'daybook_oauth');
 }
 function json(res, status, data, headers = {}) { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...headers }); res.end(JSON.stringify(data)); }
 function redirect(res, location, headers = {}) { res.writeHead(303, { Location: location, 'Cache-Control': 'no-store', ...headers }); res.end(); }
@@ -79,12 +88,13 @@ export function createDriveServer({ env = process.env, store, fetcher = fetch } 
         await store.putOauthState(state, codeVerifier, Date.now() + 10 * 60000);
         const target = new URL('https://accounts.google.com/o/oauth2/v2/auth');
         for (const [key, value] of Object.entries({ client_id: config.clientId, redirect_uri: `${config.base}/auth/callback`, response_type: 'code', scope: SCOPES.join(' '), access_type: 'offline', prompt: 'consent', state, code_challenge: challenge, code_challenge_method: 'S256' })) target.searchParams.set(key, value);
-        return redirect(res, target.href, { 'Set-Cookie': setCookie(OAUTH, state, config.secure, 600) });
+        return redirect(res, target.href, { 'Set-Cookie': setCookie(SESSION, `oauth:${state}`, config.secure, 600) });
       }
       if (req.method === 'GET' && url.pathname === '/auth/callback') {
         if (url.searchParams.get('error')) throw new Error(`Google sign-in: ${url.searchParams.get('error')}`);
         const state = url.searchParams.get('state') || '';
-        if (!state || state !== cookie(req, OAUTH)) throw new Error('Sign-in state did not match. Please try again.');
+        const cookieState = getOauthState(req);
+        if (!state || state !== cookieState) throw new Error('Sign-in state did not match. Please try again.');
         const codeVerifier = await store.consumeOauthState(state);
         const token = await oauthToken(config, { code: url.searchParams.get('code') || '', code_verifier: codeVerifier, redirect_uri: `${config.base}/auth/callback`, grant_type: 'authorization_code' }, fetcher);
         const ticket = await verifier.verifyIdToken({ idToken: token.id_token, audience: config.clientId });
@@ -92,7 +102,12 @@ export function createDriveServer({ env = process.env, store, fetcher = fetch } 
         if (!profile?.sub || !profile.email_verified) throw new Error('A verified Google account is required.');
         await store.upsertUser(profile.sub, profile, token.refresh_token);
         const session = await store.createSession(profile.sub);
-        return redirect(res, '/', { 'Set-Cookie': [setCookie(OAUTH, '', config.secure, 0), setCookie(SESSION, session.token, config.secure, 30 * 86400)] });
+        return redirect(res, '/', {
+          'Set-Cookie': [
+            setCookie(SESSION, session.token, config.secure, 30 * 86400),
+            setCookie('daybook_session', session.token, config.secure, 30 * 86400)
+          ]
+        });
       }
       if ((req.method === 'GET' || req.method === 'HEAD') && (url.pathname === '/' || url.pathname === '/drive.js' || url.pathname === '/drive.css' || url.pathname === '/favicon.svg')) {
         const filename = url.pathname === '/' ? 'drive.html' : url.pathname.slice(1);
@@ -115,7 +130,7 @@ export function createDriveServer({ env = process.env, store, fetcher = fetch } 
         return json(res, 200, { checkedUsers: users.length, results });
       }
       if (!url.pathname.startsWith('/api/')) return json(res, 404, { error: 'Not found' });
-      const sessionToken = cookie(req, SESSION);
+      const sessionToken = getSessionToken(req);
       const session = await store.session(sessionToken);
       if (!session) return json(res, 401, { error: 'Sign in with Google to continue.' });
       if (req.method !== 'GET') {
@@ -143,11 +158,24 @@ export function createDriveServer({ env = process.env, store, fetcher = fetch } 
       }
       if (url.pathname === '/api/refresh' && req.method === 'POST') return json(res, 200, { result: await scan(userId) });
       if (url.pathname === '/api/reports' && req.method === 'GET') return json(res, 200, { reports: await store.reports(userId) });
-      if (url.pathname === '/api/logout' && req.method === 'POST') { await store.deleteSession(sessionToken); return json(res, 200, { ok: true }, { 'Set-Cookie': setCookie(SESSION, '', config.secure, 0) }); }
+      if (url.pathname === '/api/logout' && req.method === 'POST') {
+        await store.deleteSession(sessionToken);
+        return json(res, 200, { ok: true }, {
+          'Set-Cookie': [
+            setCookie(SESSION, '', config.secure, 0),
+            setCookie('daybook_session', '', config.secure, 0)
+          ]
+        });
+      }
       if (url.pathname === '/api/stop-sync' && req.method === 'POST') {
         await store.stopSync(userId);
         await store.deleteSession(sessionToken);
-        return json(res, 200, { ok: true }, { 'Set-Cookie': setCookie(SESSION, '', config.secure, 0) });
+        return json(res, 200, { ok: true }, {
+          'Set-Cookie': [
+            setCookie(SESSION, '', config.secure, 0),
+            setCookie('daybook_session', '', config.secure, 0)
+          ]
+        });
       }
       return json(res, 404, { error: 'Not found' });
     } catch (error) { json(res, 400, { error: error.message }); }
