@@ -63,6 +63,5 @@ jobs:
           DAYBOOK_SCHEDULER_SECRET=${{ secrets.DAYBOOK_SCHEDULER_SECRET }}"
 
       - name: Deploy Firebase Hosting
-        continue-on-error: true
         run: |
           npx -y firebase-tools@latest deploy --only hosting --project daybook-ma
