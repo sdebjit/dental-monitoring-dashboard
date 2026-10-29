@@ -39,7 +39,9 @@ export class DriveStore {
     const existing = (await ref.get()).data() || {};
     const token = refreshToken ? this.encrypt(refreshToken) : existing.refreshToken;
     if (!token) throw new Error('Google did not provide offline access. Please reconnect and grant consent.');
-    await ref.set({ email: profile.email, name: profile.name || profile.email, picture: profile.picture || '', refreshToken: token, scheduleMinutes: Math.max(existing.scheduleMinutes ?? 1440, 1440), folderId: existing.folderId || null, folderName: existing.folderName || '', nextScanAt: existing.nextScanAt ?? null, updatedAt: new Date().toISOString() }, { merge: true });
+    const resolvedName = (existing.name && existing.name !== profile.email) ? existing.name : (profile.name || profile.email);
+    const resolvedPicture = profile.picture || existing.picture || '';
+    await ref.set({ email: profile.email, name: resolvedName, picture: resolvedPicture, refreshToken: token, scheduleMinutes: Math.max(existing.scheduleMinutes ?? 1440, 1440), folderId: existing.folderId || null, folderName: existing.folderName || '', nextScanAt: existing.nextScanAt ?? null, updatedAt: new Date().toISOString() }, { merge: true });
   }
   async getUser(id) {
     const data = (await this.user(id).get()).data();
@@ -60,12 +62,20 @@ export class DriveStore {
   async setFolder(userId, folder) {
     await this.user(userId).set({ folderId: folder.id, folderName: folder.name, nextScanAt: Date.now(), scanLeaseUntil: 0 }, { merge: true });
   }
-  async setOnboarded(userId, { termsAccepted = true, completed = true } = {}) {
-    await this.user(userId).set({
+  async updateUserName(userId, name) {
+    if (!name || typeof name !== 'string') return;
+    await this.user(userId).set({ name: name.trim(), updatedAt: new Date().toISOString() }, { merge: true });
+  }
+  async setOnboarded(userId, { termsAccepted = true, completed = true, name } = {}) {
+    const update = {
       termsAcceptedAt: termsAccepted ? new Date().toISOString() : null,
       onboardedAt: completed ? new Date().toISOString() : null,
       updatedAt: new Date().toISOString(),
-    }, { merge: true });
+    };
+    if (name && typeof name === 'string' && name.trim()) {
+      update.name = name.trim();
+    }
+    await this.user(userId).set(update, { merge: true });
   }
   async setSchedule(userId, minutes) {
     const user = await this.getUser(userId);
