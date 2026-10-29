@@ -45,7 +45,10 @@ async function oauthToken(config, fields, fetcher) {
 
 export function createDriveServer({ env = process.env, store, fetcher = fetch } = {}) {
   const config = settings(env);
-  store ||= new DriveStore({ encryptionKey: env.DAYBOOK_ENCRYPTION_KEY || env.DENTAL_MONITORING_DASHBOARD_ENCRYPTION_KEY });
+  store ||= new DriveStore({
+    databaseId: env.FIRESTORE_DATABASE_ID || env.DAYBOOK_DATABASE_ID || 'daybook-db',
+    encryptionKey: env.DAYBOOK_ENCRYPTION_KEY || env.DENTAL_MONITORING_DASHBOARD_ENCRYPTION_KEY,
+  });
   const verifier = new OAuth2Client(config.clientId);
   const access = async user => {
     const token = await oauthToken(config, { refresh_token: user.refreshToken, grant_type: 'refresh_token' }, fetcher);

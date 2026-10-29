@@ -4,9 +4,9 @@ import { Firestore, FieldValue } from '@google-cloud/firestore';
 const digest = value => createHash('sha256').update(value).digest('hex');
 
 export class DriveStore {
-  constructor({ db = new Firestore(), encryptionKey }) {
+  constructor({ db, databaseId = process.env.FIRESTORE_DATABASE_ID || process.env.DAYBOOK_DATABASE_ID || 'daybook-db', encryptionKey } = {}) {
     if (!/^[a-f0-9]{64}$/i.test(encryptionKey || '')) throw new Error('DAYBOOK_ENCRYPTION_KEY must be 32 bytes as 64 hex characters.');
-    this.db = db;
+    this.db = db || new Firestore(databaseId && databaseId !== '(default)' ? { databaseId } : {});
     this.key = Buffer.from(encryptionKey, 'hex');
   }
   users() { return this.db.collection('users'); }

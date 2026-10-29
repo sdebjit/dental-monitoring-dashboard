@@ -56,6 +56,7 @@ jobs:
             --allow-unauthenticated \
             --min-instances 0 \
             --set-env-vars "DAYBOOK_BASE_URL=https://dental-monitoring-dashboard.web.app,\
+          FIRESTORE_DATABASE_ID=daybook-db,\
           GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},\
           GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }},\
           DAYBOOK_ENCRYPTION_KEY=${{ secrets.DAYBOOK_ENCRYPTION_KEY }},\
