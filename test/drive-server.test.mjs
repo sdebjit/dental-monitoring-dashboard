@@ -114,3 +114,30 @@ test('server maintains backward compatibility with legacy DAYBOOK_ environment v
   await server.listeners('request')[0]({ method: 'GET', url: '/api/reports', headers: { cookie: 'daybook_session=legacy-token' } }, response);
   assert.equal(response.status, 200);
 });
+
+test('server supports __session cookie for Firebase Hosting rewrite compatibility', async () => {
+  const store = {
+    async session(token) { return token === 'firebase-token' ? { userId: 'firebase-user', csrf: 'firebase-csrf' } : null; },
+    async reports() { return [{ date: '2026-10-28', casesFinished: 100 }]; },
+    async consumeOauthState(state) {
+      if (state === 'valid-state') return 'test-verifier';
+      throw new Error('Not found');
+    },
+  };
+  const { server } = createDriveServer({
+    env: { DAYBOOK_BASE_URL: 'http://localhost', GOOGLE_CLIENT_ID: 'client-id', GOOGLE_CLIENT_SECRET: 'secret', DAYBOOK_SCHEDULER_SECRET: 'scheduler-secret' },
+    store,
+  });
+
+  // Verify __session token authenticated request
+  const response = { status: 0, payload: '', setHeader() {}, writeHead(status) { this.status = status; }, end(value = '') { this.payload = value; } };
+  await server.listeners('request')[0]({ method: 'GET', url: '/api/reports', headers: { cookie: '__session=firebase-token' } }, response);
+  assert.equal(response.status, 200);
+  assert.equal(JSON.parse(response.payload).reports[0].casesFinished, 100);
+
+  // Verify OAuth callback rejects state mismatch
+  const mismatchResponse = { status: 0, payload: '', setHeader() {}, writeHead(status) { this.status = status; }, end(value = '') { this.payload = value; } };
+  await server.listeners('request')[0]({ method: 'GET', url: '/auth/callback?state=state-a&code=code-123', headers: { cookie: '__session=oauth:state-b' } }, mismatchResponse);
+  assert.equal(mismatchResponse.status, 400);
+  assert.match(JSON.parse(mismatchResponse.payload).error, /Sign-in state did not match/);
+});
