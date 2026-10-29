@@ -133,7 +133,7 @@ body {
 
 /* Main Shell */
 .shell {
-  max-width: 1040px;
+  max-width: 1120px;
   margin: 0 auto;
   padding: 40px 24px 80px;
 }
@@ -151,15 +151,21 @@ body {
   animation: fadeIn 0.2s ease;
 }
 
-/* Sign-In Hero Section */
+/* Sign-In Hero Section: Split 2-Column Layout */
 .signin-hero {
-  padding: 40px 0 60px;
+  padding: 24px 0 60px;
 }
 
-.hero-content {
-  text-align: center;
-  max-width: 720px;
-  margin: 0 auto;
+.hero-split {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 56px;
+  align-items: start;
+}
+
+/* Left Column: All Content & Features */
+.hero-left {
+  text-align: left;
 }
 
 .pill-badge {
@@ -173,7 +179,7 @@ body {
   border-radius: var(--radius-full);
   font-size: 12px;
   font-weight: 600;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .pill-dot {
@@ -191,12 +197,12 @@ body {
 }
 
 .hero-title {
-  font-size: clamp(34px, 5vw, 48px);
+  font-size: clamp(32px, 4.2vw, 46px);
   font-weight: 800;
   letter-spacing: -0.04em;
-  line-height: 1.15;
+  line-height: 1.18;
   color: var(--slate-900);
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .gradient-text {
@@ -206,36 +212,105 @@ body {
 }
 
 .hero-subtitle {
-  font-size: 16px;
+  font-size: 15.5px;
   color: var(--slate-600);
   line-height: 1.6;
-  max-width: 600px;
-  margin: 0 auto 36px;
+  margin-bottom: 32px;
 }
 
-/* Elevated Sign-In Card */
+/* Left Column Features List */
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.feature-item:hover {
+  transform: translateX(3px);
+  border-color: var(--primary-border);
+  box-shadow: var(--shadow-md);
+}
+
+.feature-icon {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.feature-text h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--slate-900);
+  margin-bottom: 4px;
+}
+
+.feature-text p {
+  font-size: 13px;
+  color: var(--slate-500);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.feature-text code {
+  background: var(--slate-100);
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* Right Column: Connect Google Drive Card */
+.hero-right {
+  position: sticky;
+  top: 96px;
+}
+
 .signin-card {
-  max-width: 440px;
-  margin: 0 auto 56px;
   background: var(--card-bg);
   border: 1px solid var(--slate-200);
   border-radius: var(--radius-lg);
-  padding: 32px 28px;
+  padding: 36px 30px;
   box-shadow: var(--shadow-xl);
   text-align: center;
 }
 
+.drive-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  margin-bottom: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
 .signin-header h3 {
-  font-size: 19px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
   color: var(--slate-900);
   margin-bottom: 8px;
+  letter-spacing: -0.02em;
 }
 
 .signin-header p {
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--slate-500);
-  line-height: 1.5;
+  line-height: 1.55;
   margin-bottom: 24px;
 }
 
@@ -274,61 +349,29 @@ body {
   flex-shrink: 0;
 }
 
-.signin-privacy {
+/* Security Trust Badges */
+.security-badges {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--slate-400);
-  margin-top: 18px;
-}
-
-/* Value Props Feature Grid */
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--slate-100);
   text-align: left;
 }
 
-.feature-item {
-  background: var(--card-bg);
-  border: 1px solid var(--slate-200);
-  border-radius: var(--radius-md);
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.feature-item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.feature-icon {
-  font-size: 24px;
-  margin-bottom: 12px;
-}
-
-.feature-item h4 {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--slate-900);
-  margin-bottom: 6px;
-}
-
-.feature-item p {
-  font-size: 13px;
-  color: var(--slate-500);
-  line-height: 1.5;
-}
-
-.feature-item code {
-  background: var(--slate-100);
-  padding: 2px 5px;
-  border-radius: 4px;
+.security-badge-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 12px;
+  color: var(--slate-500);
+  font-weight: 500;
+}
+
+.security-badge-item svg {
+  color: var(--primary);
+  flex-shrink: 0;
 }
 
 /* Authenticated Workspace */
@@ -630,6 +673,20 @@ button:disabled, .btn:disabled {
 }
 
 /* Responsive */
+@media (max-width: 920px) {
+  .hero-split {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .hero-right {
+    position: static;
+  }
+  .signin-card {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+}
+
 @media (max-width: 768px) {
   .shell {
     padding: 24px 16px 60px;
@@ -637,9 +694,6 @@ button:disabled, .btn:disabled {
   .grid {
     grid-template-columns: 1fr;
     gap: 18px;
-  }
-  .features-grid {
-    grid-template-columns: 1fr;
   }
   .row {
     flex-wrap: wrap;
