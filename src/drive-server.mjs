@@ -66,7 +66,7 @@ export function createDriveServer({ env = process.env, store, fetcher = fetch } 
   const server = createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'no-referrer');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' https://lh3.googleusercontent.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://lh3.googleusercontent.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
     try {
       const url = new URL(req.url, config.base);
       if (req.method === 'GET' && url.pathname === '/auth/login') {
@@ -91,9 +91,13 @@ export function createDriveServer({ env = process.env, store, fetcher = fetch } 
         const session = await store.createSession(profile.sub);
         return redirect(res, '/', { 'Set-Cookie': [setCookie(OAUTH, '', config.secure, 0), setCookie(SESSION, session.token, config.secure, 30 * 86400)] });
       }
-      if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/drive.js' || url.pathname === '/drive.css' || url.pathname === '/favicon.svg')) {
+      if ((req.method === 'GET' || req.method === 'HEAD') && (url.pathname === '/' || url.pathname === '/drive.js' || url.pathname === '/drive.css' || url.pathname === '/favicon.svg')) {
         const filename = url.pathname === '/' ? 'drive.html' : url.pathname.slice(1);
         const type = filename.endsWith('.html') ? 'text/html' : filename.endsWith('.js') ? 'text/javascript' : filename.endsWith('.svg') ? 'image/svg+xml' : 'text/css';
+        if (req.method === 'HEAD') {
+          res.writeHead(200, { 'Content-Type': `${type}; charset=utf-8`, 'Cache-Control': 'no-store' });
+          return res.end();
+        }
         const content = await readFile(new URL(filename, ROOT));
         res.writeHead(200, { 'Content-Type': `${type}; charset=utf-8`, 'Cache-Control': 'no-store' }); return res.end(content);
       }

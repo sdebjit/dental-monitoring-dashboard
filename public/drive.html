@@ -2,24 +2,166 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Daybook · Report pipeline</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dental Monitoring Dashboard · Report pipeline</title>
   <link rel="icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/drive.css">
   <script src="/drive.js" defer></script>
 </head>
 <body>
-  <main class="shell">
-    <header><div><p class="eyebrow">DAYBOOK</p><h1>Your reports, in one place.</h1><p class="lede">Export your dashboard as a PDF and place it in your chosen Google Drive folder. Daybook reads the report and moves it to <strong>archive</strong> after a successful import.</p></div><div id="account"></div></header>
-    <p id="message" role="status" aria-live="polite"></p>
-    <section id="signin" class="card hidden"><h2>Connect Google Drive</h2><p>Sign in with Google to choose one folder. Google will request Drive-wide access so Daybook can read PDFs you upload later and move processed files. Daybook processes only the folder you choose and its archive.</p><a class="button" href="/auth/login">Sign in with Google</a></section>
-    <div id="workspace" class="hidden">
-      <div class="grid">
-        <section class="card"><div class="card-head"><span class="step">01</span><h2>Choose your folder</h2></div><p id="current-folder" class="muted"></p><div class="row"><select id="folders" aria-label="Google Drive folder"><option value="">Loading folders…</option></select><button id="choose-folder">Use folder</button></div><p class="hint">Only PDFs directly inside this folder are imported. Processed PDFs move into its archive subfolder.</p></section>
-        <section class="card"><div class="card-head"><span class="step">02</span><h2>Refresh</h2></div><label for="schedule">Check for new PDFs</label><div class="row"><select id="schedule"><option value="1440">Every day</option><option value="2880">Every 2 days</option><option value="4320">Every 3 days</option><option value="10080">Every week</option></select><button id="save-schedule">Save</button></div><button id="refresh" class="button secondary">Refresh now</button><p id="scan-status" class="hint"></p></section>
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div>
+          <span class="brand-title">Dental Monitoring</span>
+          <span class="brand-badge">Pipeline</span>
+        </div>
       </div>
-      <section class="card reports"><div class="card-head"><span class="step">03</span><h2>Imported reports</h2></div><div id="reports"></div></section>
-      <p class="hint"><button id="stop-sync" class="link-button">Stop syncing and disconnect Drive</button> · This removes Daybook's stored Google access. Your imported reports remain available if you reconnect.</p>
+      <div id="account"></div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <p id="message" role="status" aria-live="polite"></p>
+
+    <!-- Modern Hero & Sign-In Section -->
+    <section id="signin" class="signin-hero hidden">
+      <div class="hero-content">
+        <div class="pill-badge">
+          <span class="pill-dot"></span>
+          Cloud Run & Google Drive Automated Ingestion
+        </div>
+        <h1 class="hero-title">Your daily clinical reports,<br><span class="gradient-text">automated & structured.</span></h1>
+        <p class="hero-subtitle">
+          Export your daily monitoring dashboard as a PDF and place it in your Google Drive folder. Daybook validates operator metrics, saves structured data in Firestore, and archives processed files.
+        </p>
+
+        <div class="signin-card">
+          <div class="signin-card-body">
+            <div class="signin-header">
+              <h3>Connect Google Drive</h3>
+              <p>Sign in with Google to select your report folder. Daybook processes only the folder you choose and its archive subfolder.</p>
+            </div>
+
+            <a class="google-btn" href="/auth/login">
+              <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span>Sign in with Google</span>
+            </a>
+
+            <p class="signin-privacy">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              AES-256 encrypted tokens. Scoped only to your chosen folder.
+            </p>
+          </div>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-item">
+            <div class="feature-icon">📁</div>
+            <h4>Folder Ingestion</h4>
+            <p>Upload PDFs to your selected Drive folder. Reports are checked automatically and moved into <code>archive</code>.</p>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🔍</div>
+            <h4>Strict Validation</h4>
+            <p>Verifies completed case counts and hourly rows match the reported summary before persisting data.</p>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">⏱️</div>
+            <h4>Daily Automation</h4>
+            <p>Scheduled daily scans or on-demand manual refresh ensure you never have to manually re-enter metrics.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Authenticated Workspace -->
+    <div id="workspace" class="workspace-container hidden">
+      <div class="workspace-header">
+        <h2>Dashboard Overview</h2>
+        <p class="lede">Manage your report ingestion folder, schedule scans, and review imported daily records.</p>
+      </div>
+
+      <div class="grid">
+        <!-- Step 1: Folder Selection -->
+        <section class="card">
+          <div class="card-head">
+            <span class="step">01</span>
+            <div>
+              <h3>Choose your folder</h3>
+              <p class="card-desc">Google Drive folder for exported PDFs</p>
+            </div>
+          </div>
+          <div class="folder-status-box">
+            <span class="status-indicator"></span>
+            <p id="current-folder" class="folder-name"></p>
+          </div>
+          <div class="row">
+            <select id="folders" aria-label="Google Drive folder">
+              <option value="">Loading folders…</option>
+            </select>
+            <button id="choose-folder" class="btn btn-primary">Use folder</button>
+          </div>
+          <p class="hint">Only PDFs directly inside this folder are imported. Processed PDFs move into its <code>archive</code> subfolder.</p>
+        </section>
+
+        <!-- Step 2: Refresh Settings -->
+        <section class="card">
+          <div class="card-head">
+            <span class="step">02</span>
+            <div>
+              <h3>Refresh</h3>
+              <p class="card-desc">Scheduled scans & manual trigger</p>
+            </div>
+          </div>
+          <label for="schedule" class="form-label">Check for new PDFs</label>
+          <div class="row">
+            <select id="schedule">
+              <option value="1440">Every day</option>
+              <option value="2880">Every 2 days</option>
+              <option value="4320">Every 3 days</option>
+              <option value="10080">Every week</option>
+            </select>
+            <button id="save-schedule" class="btn btn-secondary">Save</button>
+          </div>
+          <div class="refresh-action-row">
+            <button id="refresh" class="btn btn-primary btn-block secondary">Refresh now</button>
+            <p id="scan-status" class="hint"></p>
+          </div>
+        </section>
+      </div>
+
+      <!-- Step 3: Imported Reports List -->
+      <section class="card reports">
+        <div class="card-head">
+          <span class="step">03</span>
+          <div>
+            <h3>Imported reports</h3>
+            <p class="card-desc">Structured daily metrics stored in Firestore</p>
+          </div>
+        </div>
+        <div id="reports" class="reports-feed"></div>
+      </section>
+
+      <!-- Account Controls & Disconnect -->
+      <footer class="workspace-footer">
+        <button id="stop-sync" class="link-button">Stop syncing and disconnect Drive</button>
+        <span class="divider">·</span>
+        <span class="hint">This removes Daybook's stored Google access. Your imported reports remain available if you reconnect.</span>
+      </footer>
     </div>
   </main>
 </body>
