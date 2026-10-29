@@ -26,7 +26,8 @@ test('shared server protects user and scheduled routes, and starts OAuth with st
   const target = new URL(login.headers.location);
     assert.equal(target.hostname, 'accounts.google.com');
     assert.equal(target.searchParams.get('code_challenge_method'), 'S256');
-    assert.ok(target.searchParams.get('scope').includes('https://www.googleapis.com/auth/drive'));
+    assert.ok(target.searchParams.get('scope').includes('profile'));
+  assert.ok(target.searchParams.get('scope').includes('https://www.googleapis.com/auth/drive'));
     assert.equal(saved[0].state, target.searchParams.get('state'));
     assert.ok(saved[0].verifier);
   assert.ok(login.headers['set-cookie'].includes('HttpOnly'));
@@ -280,5 +281,48 @@ test('api/reports/resolve-conflict resolves duplicate reports and updates the ac
   assert.equal(data.ok, true);
   assert.equal(data.report.casesFinished, 250);
   assert.deepEqual(resolvedArgs, { userId: 'alice-id', date: '2026-10-27', keepVersionId: 'pdf-2' });
+});
+
+test('api/profile updates user name and api/onboarded persists custom name', async () => {
+  let updatedName = '';
+  let onboardedState = null;
+  const store = {
+    async session(token) { return token === 'user-token' ? { userId: 'alice-id', csrf: 'csrf-1' } : null; },
+    async updateUserName(userId, name) { updatedName = name; },
+    async setOnboarded(userId, options) { onboardedState = { userId, ...options }; },
+  };
+  const { server } = createDriveServer({
+    env: { DAYBOOK_BASE_URL: 'http://localhost', GOOGLE_CLIENT_ID: 'client-id', GOOGLE_CLIENT_SECRET: 'secret', DAYBOOK_SCHEDULER_SECRET: 'scheduler-secret' },
+    store,
+  });
+
+  // 1. Test /api/profile
+  const res1 = { headers: {}, status: 0, payload: '', setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s) { this.status = s; }, end(v = '') { this.payload = v; } };
+  const req1 = {
+    method: 'POST',
+    url: '/api/profile',
+    headers: { cookie: 'daybook_session=user-token', origin: 'http://localhost', 'x-daybook-csrf': 'csrf-1', 'content-type': 'application/json' },
+    async *[Symbol.asyncIterator]() { yield Buffer.from(JSON.stringify({ name: 'Dr. Jane Smith' })); }
+  };
+  await server.listeners('request')[0](req1, res1);
+  assert.equal(res1.status, 200);
+  const data1 = JSON.parse(res1.payload);
+  assert.equal(data1.ok, true);
+  assert.equal(data1.name, 'Dr. Jane Smith');
+  assert.equal(updatedName, 'Dr. Jane Smith');
+
+  // 2. Test /api/onboarded with name
+  const res2 = { headers: {}, status: 0, payload: '', setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s) { this.status = s; }, end(v = '') { this.payload = v; } };
+  const req2 = {
+    method: 'POST',
+    url: '/api/onboarded',
+    headers: { cookie: 'daybook_session=user-token', origin: 'http://localhost', 'x-daybook-csrf': 'csrf-1', 'content-type': 'application/json' },
+    async *[Symbol.asyncIterator]() { yield Buffer.from(JSON.stringify({ termsAccepted: true, completed: true, name: 'Dr. Jane Smith, DDS' })); }
+  };
+  await server.listeners('request')[0](req2, res2);
+  assert.equal(res2.status, 200);
+  assert.equal(updatedName, 'Dr. Jane Smith, DDS');
+  assert.equal(onboardedState.name, 'Dr. Jane Smith, DDS');
+  assert.equal(onboardedState.completed, true);
 });
 

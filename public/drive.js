@@ -2918,14 +2918,17 @@ function updateOnboardingView() {
   // Pre-fill profile if available on Step 1
   if (currentOnboardStep === 1 && currentUser) {
     const nameInput = $('onboard-name-input');
-    if (nameInput && !nameInput.value) nameInput.value = currentUser.name || '';
+    if (nameInput && (!nameInput.value || nameInput.value === currentUser.email)) {
+      nameInput.value = currentUser.name || '';
+    }
     const emailBadge = $('onboard-user-email-badge');
     if (emailBadge) emailBadge.textContent = currentUser.email || 'user@example.com';
     const avatarPreview = $('onboard-avatar-preview');
     if (avatarPreview && currentUser.picture) {
       avatarPreview.innerHTML = `<img src="${currentUser.picture}" alt="" class="onboard-avatar-img">`;
     } else if (avatarPreview) {
-      $('onboard-avatar-fallback').textContent = (currentUser.name || currentUser.email || 'U').charAt(0).toUpperCase();
+      const initial = (currentUser.name || currentUser.email || 'U').charAt(0).toUpperCase();
+      avatarPreview.innerHTML = `<span id="onboard-avatar-fallback">${initial}</span>`;
     }
   }
 
@@ -2946,16 +2949,37 @@ function updateOnboardingView() {
 }
 
 function initOnboarding() {
+  // Sync name changes in real time to avatar fallback and user menu
+  const nameInput = $('onboard-name-input');
+  if (nameInput) {
+    nameInput.addEventListener('input', () => {
+      const val = nameInput.value.trim();
+      if (val && currentUser) {
+        currentUser.name = val;
+        renderUserMenu(currentUser);
+        const fallback = $('onboard-avatar-fallback');
+        if (fallback && !currentUser.picture) {
+          fallback.textContent = val.charAt(0).toUpperCase();
+        }
+      }
+    });
+  }
+
   // Step 1 Profile Continue
   const btn1 = $('onboard-btn-step-1');
   if (btn1) {
-    btn1.onclick = () => {
+    btn1.onclick = async () => {
       const name = ($('onboard-name-input').value || '').trim();
       if (!name) {
         message('Please enter your full name to continue.');
         $('onboard-name-input').focus();
         return;
       }
+      if (currentUser) currentUser.name = name;
+      renderUserMenu(currentUser);
+      try {
+        await post('/api/profile', { name });
+      } catch (_) {}
       currentOnboardStep = 2;
       updateOnboardingView();
     };
@@ -3014,7 +3038,10 @@ function initOnboarding() {
   const goDashboardBtn = $('onboard-go-dashboard-btn');
   if (goDashboardBtn) {
     goDashboardBtn.onclick = async () => {
-      await post('/api/onboarded', { termsAccepted: true, completed: true });
+      const name = ($('onboard-name-input')?.value || currentUser?.name || '').trim();
+      if (name && currentUser) currentUser.name = name;
+      renderUserMenu(currentUser);
+      await post('/api/onboarded', { termsAccepted: true, completed: true, name });
       document.body.classList.remove('onboarding-mode');
       $('onboarding').classList.add('hidden');
       $('workspace').classList.remove('hidden');
@@ -3027,7 +3054,9 @@ function initOnboarding() {
   const reviewSettingsBtn = $('onboard-review-settings-btn');
   if (reviewSettingsBtn) {
     reviewSettingsBtn.onclick = async () => {
-      await post('/api/onboarded', { termsAccepted: true, completed: true });
+      const name = ($('onboard-name-input')?.value || currentUser?.name || '').trim();
+      if (name && currentUser) currentUser.name = name;
+      await post('/api/onboarded', { termsAccepted: true, completed: true, name });
       document.body.classList.remove('onboarding-mode');
       window.location.href = '/settings';
     };

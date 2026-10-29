@@ -14,7 +14,7 @@ try {
 
 const ROOT = new URL('../public/', import.meta.url);
 const SESSION = '__session';
-const SCOPES = ['openid', 'email', 'https://www.googleapis.com/auth/drive'];
+const SCOPES = ['openid', 'email', 'profile', 'https://www.googleapis.com/auth/drive'];
 
 function settings(env) {
   const baseUrl = env.DAYBOOK_BASE_URL || env.DENTAL_MONITORING_DASHBOARD_BASE_URL;
@@ -83,7 +83,7 @@ export function createDriveServer({ env = process.env, store, access, fetcher = 
   const server = createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'no-referrer');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://lh3.googleusercontent.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://*.googleusercontent.com https://lh3.googleusercontent.com data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
     try {
       const url = new URL(req.url, config.base);
       if (req.method === 'GET' && url.pathname === '/auth/login') {
@@ -103,8 +103,19 @@ export function createDriveServer({ env = process.env, store, access, fetcher = 
         const codeVerifier = await store.consumeOauthState(state);
         const token = await oauthToken(config, { code: url.searchParams.get('code') || '', code_verifier: codeVerifier, redirect_uri: `${config.base}/auth/callback`, grant_type: 'authorization_code' }, fetcher);
         const ticket = await verifier.verifyIdToken({ idToken: token.id_token, audience: config.clientId });
-        const profile = ticket.getPayload();
+        let profile = ticket.getPayload();
         if (!profile?.sub || !profile.email_verified) throw new Error('A verified Google account is required.');
+        if (token.access_token && (!profile.name || !profile.picture)) {
+          try {
+            const userinfoRes = await fetcher('https://www.googleapis.com/oauth2/v3/userinfo', {
+              headers: { Authorization: `Bearer ${token.access_token}` }
+            });
+            if (userinfoRes.ok) {
+              const info = await userinfoRes.json();
+              profile = { ...profile, ...info };
+            }
+          } catch (_) {}
+        }
         await store.upsertUser(profile.sub, profile, token.refresh_token);
         const session = await store.createSession(profile.sub);
         return redirect(res, '/', {
@@ -163,10 +174,23 @@ export function createDriveServer({ env = process.env, store, access, fetcher = 
           }
         });
       }
+      if (url.pathname === '/api/profile' && req.method === 'POST') {
+        const bodyData = await body(req);
+        const name = (bodyData.name || '').trim();
+        if (!name) return json(res, 400, { error: 'Name cannot be empty.' });
+        if (typeof store.updateUserName === 'function') {
+          await store.updateUserName(userId, name);
+        }
+        return json(res, 200, { ok: true, name });
+      }
       if (url.pathname === '/api/onboarded' && req.method === 'POST') {
         const bodyData = await body(req);
+        const name = (bodyData.name || '').trim();
+        if (name && typeof store.updateUserName === 'function') {
+          await store.updateUserName(userId, name);
+        }
         if (typeof store.setOnboarded === 'function') {
-          await store.setOnboarded(userId, { termsAccepted: bodyData.termsAccepted !== false, completed: bodyData.completed !== false });
+          await store.setOnboarded(userId, { termsAccepted: bodyData.termsAccepted !== false, completed: bodyData.completed !== false, name: name || undefined });
         }
         return json(res, 200, { ok: true });
       }
