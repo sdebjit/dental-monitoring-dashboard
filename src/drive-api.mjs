@@ -15,25 +15,65 @@ export class DriveApi {
     return response;
   }
   async json(url, options) { return (await this.request(url, options)).json(); }
-  async list(q, fields = 'nextPageToken,files(id,name,mimeType,parents,modifiedTime,webViewLink)', pageSize = 100) {
+  async list(q, fields = 'nextPageToken,files(id,name,mimeType,parents,modifiedTime,webViewLink)', pageSize = 100, maxResults = Infinity, orderBy = 'modifiedTime asc') {
     const files = [];
     let pageToken;
     do {
       const url = new URL(API);
       url.searchParams.set('q', q);
       url.searchParams.set('fields', fields);
-      url.searchParams.set('pageSize', String(pageSize));
-      url.searchParams.set('orderBy', 'modifiedTime asc');
+      url.searchParams.set('pageSize', String(Math.min(pageSize, 1000)));
+      if (orderBy) url.searchParams.set('orderBy', orderBy);
       if (pageToken) url.searchParams.set('pageToken', pageToken);
       const page = await this.json(url);
       files.push(...(page.files || []));
       pageToken = page.nextPageToken;
-      if (files.length > 1000) throw new Error('Folder has more than 1,000 pending files. Process or remove some before refreshing.');
+      if (files.length >= maxResults) {
+        return files.slice(0, maxResults);
+      }
     } while (pageToken);
     return files;
   }
-  async listFolders() {
-    return this.list(`mimeType = '${FOLDER}' and trashed = false`, 'nextPageToken,files(id,name,mimeType,parents,webViewLink)', 1000);
+  async listFolders(parentId = 'root', maxFolders = 200) {
+    if (typeof parentId === 'number') {
+      maxFolders = parentId;
+      parentId = 'root';
+    }
+    if (!parentId || parentId === 'root') {
+      const rootFolders = await this.list(
+        `'root' in parents and mimeType = '${FOLDER}' and trashed = false`,
+        'nextPageToken,files(id,name,mimeType,parents,webViewLink)',
+        100,
+        maxFolders,
+        'name asc'
+      );
+      let sharedFolders = [];
+      try {
+        sharedFolders = await this.list(
+          `sharedWithMe = true and mimeType = '${FOLDER}' and trashed = false`,
+          'nextPageToken,files(id,name,mimeType,parents,webViewLink)',
+          100,
+          50,
+          'name asc'
+        );
+      } catch {
+        // Ignore if sharedWithMe query fails
+      }
+      const map = new Map();
+      for (const f of rootFolders) map.set(f.id, f);
+      for (const f of sharedFolders) {
+        if (!map.has(f.id)) map.set(f.id, { ...f, isShared: true });
+      }
+      return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return this.list(
+      `'${escapeQuery(parentId)}' in parents and mimeType = '${FOLDER}' and trashed = false`,
+      'nextPageToken,files(id,name,mimeType,parents,webViewLink)',
+      100,
+      maxFolders,
+      'name asc'
+    );
   }
   async getFolder(id) {
     const url = new URL(`${API}/${encodeURIComponent(id)}`);
@@ -45,7 +85,9 @@ export class DriveApi {
     return folder;
   }
   async listPdfs(folderId) {
-    return this.list(`'${escapeQuery(folderId)}' in parents and mimeType = '${PDF}' and trashed = false`);
+    const files = await this.list(`'${escapeQuery(folderId)}' in parents and mimeType = '${PDF}' and trashed = false`, 'nextPageToken,files(id,name,mimeType,parents,modifiedTime,webViewLink)', 100, 1001, 'modifiedTime asc');
+    if (files.length > 1000) throw new Error('Folder has more than 1,000 pending files. Process or remove some before refreshing.');
+    return files;
   }
   async download(fileId) {
     const url = new URL(`${API}/${encodeURIComponent(fileId)}`);
