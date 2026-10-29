@@ -1,16 +1,16 @@
-# Daybook
+# Dental Monitoring Dashboard
 
-Daybook is a shared, multiuser PDF import pipeline. Each user signs in with Google, chooses one Google Drive folder, and places exported dashboard PDFs there. Daybook validates the report, saves structured data in Firestore, then moves each successfully imported PDF into an `archive` subfolder. Users can refresh manually or choose a daily or longer scan interval (minimum once per day).
+Dental Monitoring Dashboard is a shared, multiuser PDF import pipeline. Each user signs in with Google, chooses one Google Drive folder, and places exported dashboard PDFs there. Dental Monitoring Dashboard validates the report, saves structured data in Firestore, then moves each successfully imported PDF into an `archive` subfolder. Users can refresh manually or choose a daily or longer scan interval (minimum once per day).
 
 The app does not connect to Microsoft, open the source dashboard, or take screenshots. Users export the PDF manually.
 
 ## What the sample PDF produces
 
-The supplied October 27 report is text-readable. The parser extracts the report date, operator, shift, 243 completed cases, the exact individual score of 2065.5, benchmark scores, and eight hourly Details rows. It checks that the hourly case counts add to the reported total. A malformed or unsupported PDF stays in the input folder and appears as a scan error. Daybook does not infer values from screenshots.
+The supplied October 27 report is text-readable. The parser extracts the report date, operator, shift, 243 completed cases, the exact individual score of 2065.5, benchmark scores, and eight hourly Details rows. It checks that the hourly case counts add to the reported total. A malformed or unsupported PDF stays in the input folder and appears as a scan error. Dental Monitoring Dashboard does not infer values from screenshots.
 
 ## Google Cloud & Firebase deployment
 
-This project targets **Cloud Run (`daybook`) + Firebase Hosting (`dental-monitoring-dashboard`) + Firestore Standard + one Cloud Scheduler job**. 
+This project targets **Cloud Run (service: `daybook`) + Firebase Hosting (`dental-monitoring-dashboard`) + Firestore Standard + one Cloud Scheduler job**. 
 
 Cloud Run runs the backend service. Firebase Hosting provides the clean public URL `https://dental-monitoring-dashboard.web.app` and proxies all traffic to Cloud Run. Firestore stores per-user settings, encrypted OAuth refresh tokens, session state, and parsed reports. The PDFs remain in each user's Google Drive folder and its `archive` child folder. One Scheduler job checks which users are due; each user's interval is stored in Firestore. No per-user Scheduler jobs are needed.
 
@@ -46,12 +46,12 @@ Generate independent secrets with `openssl rand -hex 32`. Changing `DAYBOOK_ENCR
 
 Google's free quotas currently include 2 million Cloud Run requests per month with CPU and memory allowances, one Firestore database with 1 GiB storage / 50,000 reads / 20,000 writes per day, and three Cloud Scheduler jobs per billing account. Billing must still be enabled, and Cloud Build, Artifact Registry, network egress, Secret Manager, or overages may create charges. Set a budget alert in Google Cloud. See [Cloud Run pricing](https://cloud.google.com/run/pricing), [Firestore quotas](https://firebase.google.com/docs/firestore/quotas), and [Scheduler pricing](https://cloud.google.com/scheduler/pricing).
 
-The requested automatic read-and-archive flow uses the full `drive` OAuth scope. Google classifies it as **restricted**. Daybook's code limits operations to the selected folder, but Google's permission dialog grants broader access. Public production use may require Google verification and a third-party security assessment; this can be much more significant than cloud hosting cost. Testing-mode refresh tokens for external apps generally expire after seven days. See [Drive scopes](https://developers.google.com/workspace/drive/api/guides/api-specific-auth), [restricted-scope verification](https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification), and [OAuth token lifetimes](https://developers.google.com/identity/protocols/oauth2).
+The requested automatic read-and-archive flow uses the full `drive` OAuth scope. Google classifies it as **restricted**. Dental Monitoring Dashboard's code limits operations to the selected folder, but Google's permission dialog grants broader access. Public production use may require Google verification and a third-party security assessment; this can be much more significant than cloud hosting cost. Testing-mode refresh tokens for external apps generally expire after seven days. See [Drive scopes](https://developers.google.com/workspace/drive/api/guides/api-specific-auth), [restricted-scope verification](https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification), and [OAuth token lifetimes](https://developers.google.com/identity/protocols/oauth2).
 
 ## Data handling
 
 Users are identified by their Google account ID, not email. Reports and file statuses live under that user's Firestore document. OAuth refresh tokens use AES-256-GCM encryption with the environment key; sessions use secure, HTTP-only cookies on HTTPS. The PDF is archived only after Firestore commits the parsed report. If the Drive move fails, the next scan retries the move without importing the same file again. If parsing or saving fails, the PDF stays in the chosen folder.
 
-**Stop syncing and disconnect Drive** removes Daybook's stored Google access and stops future scans while preserving imported reports. Users can also revoke the app's grant from their Google Account security settings.
+**Stop syncing and disconnect Drive** removes Dental Monitoring Dashboard's stored Google access and stops future scans while preserving imported reports. Users can also revoke the app's grant from their Google Account security settings.
 
 The pipeline currently supports the layout of the supplied dashboard PDF. Other PDF layouts may need parser adjustments. The UI shows a minimal imported-report list; dashboard metrics and visual design can be decided after the pipeline is running.
