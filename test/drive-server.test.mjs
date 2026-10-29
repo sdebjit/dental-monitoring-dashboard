@@ -99,6 +99,11 @@ test('schedule endpoint enforces a minimum refresh schedule of once per day (144
   assert.equal(acceptedWeek.status, 200);
   assert.equal(acceptedWeek.body.minutes, 10080);
   assert.deepEqual(savedSchedule, { userId: 'alice-id', minutes: 10080 });
+
+  const acceptedManual = await postSchedule(0);
+  assert.equal(acceptedManual.status, 200);
+  assert.equal(acceptedManual.body.minutes, 0);
+  assert.deepEqual(savedSchedule, { userId: 'alice-id', minutes: 0 });
 });
 
 test('server maintains backward compatibility with legacy DAYBOOK_ environment variables and cookies', async () => {
@@ -141,3 +146,139 @@ test('server supports __session cookie for Firebase Hosting rewrite compatibilit
   assert.equal(mismatchResponse.status, 400);
   assert.match(JSON.parse(mismatchResponse.payload).error, /Sign-in state did not match/);
 });
+
+test('delete-all-data permanently flushes user data and clears session cookies', async () => {
+  let deletedUser = null;
+  const store = {
+    async session(token) { return token === 'user-token' ? { userId: 'victim-id', csrf: 'csrf-1' } : null; },
+    async deleteAllUserData(userId) { deletedUser = userId; },
+  };
+  const { server } = createDriveServer({
+    env: { DAYBOOK_BASE_URL: 'http://localhost', GOOGLE_CLIENT_ID: 'client-id', GOOGLE_CLIENT_SECRET: 'secret', DAYBOOK_SCHEDULER_SECRET: 'scheduler-secret' },
+    store,
+  });
+
+  const response = { headers: {}, status: 0, payload: '', setHeader(name, value) { this.headers[name.toLowerCase()] = value; }, writeHead(status, headers = {}) { this.status = status; for (const [k, v] of Object.entries(headers)) this.headers[k.toLowerCase()] = v; }, end(value = '') { this.payload = value; } };
+  await server.listeners('request')[0]({
+    method: 'POST',
+    url: '/api/delete-all-data',
+    headers: {
+      cookie: '__session=user-token',
+      origin: 'http://localhost',
+      'x-daybook-csrf': 'csrf-1',
+    },
+  }, response);
+
+  assert.equal(response.status, 200);
+  assert.equal(deletedUser, 'victim-id');
+  assert.equal(JSON.parse(response.payload).ok, true);
+  assert.ok(response.headers['set-cookie']);
+});
+
+test('api/import-stats returns total counts and recent 5 imports', async () => {
+  const store = {
+    async session(token) { return token === 'user-token' ? { userId: 'alice-id', csrf: 'csrf-1' } : null; },
+    async getImportStats(userId) {
+      assert.equal(userId, 'alice-id');
+      return {
+        totalSuccessful: 8,
+        totalErrors: 1,
+        recentImports: [
+          { fileName: 'report-1.pdf', when: '2026-10-29', location: 'Reports / archive', status: 'success' },
+          { fileName: 'corrupt.pdf', when: '2026-10-28', location: 'Reports', status: 'error', error: 'Invalid PDF' }
+        ],
+      };
+    },
+  };
+  const { server } = createDriveServer({
+    env: { DAYBOOK_BASE_URL: 'http://localhost', GOOGLE_CLIENT_ID: 'client-id', GOOGLE_CLIENT_SECRET: 'secret', DAYBOOK_SCHEDULER_SECRET: 'scheduler-secret' },
+    store,
+  });
+
+  const response = { headers: {}, status: 0, payload: '', setHeader(name, value) { this.headers[name.toLowerCase()] = value; }, writeHead(status, headers = {}) { this.status = status; for (const [k, v] of Object.entries(headers)) this.headers[k.toLowerCase()] = v; }, end(value = '') { this.payload = value; } };
+  await server.listeners('request')[0]({
+    method: 'GET',
+    url: '/api/import-stats',
+    headers: { cookie: '__session=user-token' },
+  }, response);
+
+  assert.equal(response.status, 200);
+  const data = JSON.parse(response.payload);
+  assert.equal(data.totalSuccessful, 8);
+  assert.equal(data.totalErrors, 1);
+  assert.equal(data.recentImports.length, 2);
+  assert.equal(data.recentImports[1].status, 'error');
+});
+
+test('api/source-status reports folder availability accurately', async () => {
+  const store = {
+    async session(token) { return token === 'user-token' ? { userId: 'alice-id', csrf: 'csrf' } : null; },
+    async getUser(userId) {
+      if (userId === 'alice-id') return { folderId: 'valid-folder', folderName: 'Clinical Reports' };
+      return {};
+    },
+  };
+  const { server } = createDriveServer({
+    env: { DAYBOOK_BASE_URL: 'http://localhost', GOOGLE_CLIENT_ID: 'client-id', GOOGLE_CLIENT_SECRET: 'secret', DAYBOOK_SCHEDULER_SECRET: 'scheduler-secret' },
+    store,
+    access: async () => ({
+      async getFolder(id) {
+        if (id === 'valid-folder') return { id: 'valid-folder', name: 'Clinical Reports' };
+        throw new Error('File not found: ' + id);
+      }
+    }),
+  });
+
+  const reqHelper = async (cookie) => {
+    const res = { headers: {}, status: 0, payload: '', setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s, h = {}) { this.status = s; }, end(v = '') { this.payload = v; } };
+    await server.listeners('request')[0]({
+      method: 'GET',
+      url: '/api/source-status',
+      headers: { cookie },
+    }, res);
+    return { status: res.status, body: JSON.parse(res.payload) };
+  };
+
+  const okResult = await reqHelper('daybook_session=user-token');
+  assert.equal(okResult.status, 200);
+  assert.equal(okResult.body.available, true);
+  assert.equal(okResult.body.folder.name, 'Clinical Reports');
+});
+
+test('api/reports/resolve-conflict resolves duplicate reports and updates the active version', async () => {
+  let resolvedArgs = null;
+  const store = {
+    async session(token) { return token === 'user-token' ? { userId: 'alice-id', csrf: 'csrf-1' } : null; },
+    async resolveDuplicateReport(userId, date, keepVersionId) {
+      resolvedArgs = { userId, date, keepVersionId };
+      return { date, casesFinished: 250, sourceFileId: keepVersionId, hasConflict: false };
+    },
+  };
+  const { server } = createDriveServer({
+    env: { DAYBOOK_BASE_URL: 'http://localhost', GOOGLE_CLIENT_ID: 'client-id', GOOGLE_CLIENT_SECRET: 'secret', DAYBOOK_SCHEDULER_SECRET: 'scheduler-secret' },
+    store,
+  });
+
+  const res = { headers: {}, status: 0, payload: '', setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s, h = {}) { this.status = s; }, end(v = '') { this.payload = v; } };
+  const req = {
+    method: 'POST',
+    url: '/api/reports/resolve-conflict',
+    headers: {
+      cookie: 'daybook_session=user-token',
+      origin: 'http://localhost',
+      'x-daybook-csrf': 'csrf-1',
+      'content-type': 'application/json',
+    },
+    async *[Symbol.asyncIterator]() {
+      yield Buffer.from(JSON.stringify({ date: '2026-10-27', keepVersionId: 'pdf-2' }));
+    }
+  };
+
+  await server.listeners('request')[0](req, res);
+  assert.equal(res.status, 200);
+  const data = JSON.parse(res.payload);
+  assert.equal(data.ok, true);
+  assert.equal(data.report.casesFinished, 250);
+  assert.deepEqual(resolvedArgs, { userId: 'alice-id', date: '2026-10-27', keepVersionId: 'pdf-2' });
+});
+

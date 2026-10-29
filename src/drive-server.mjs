@@ -8,9 +8,13 @@ import { DriveApi } from './drive-api.mjs';
 import { DriveStore } from './drive-store.mjs';
 import { ingestFolder } from './drive-pipeline.mjs';
 
+try {
+  if (typeof process.loadEnvFile === 'function') process.loadEnvFile();
+} catch (_) {}
+
 const ROOT = new URL('../public/', import.meta.url);
 const SESSION = '__session';
-const SCOPES = ['openid', 'email', 'profile', 'https://www.googleapis.com/auth/drive'];
+const SCOPES = ['openid', 'email', 'https://www.googleapis.com/auth/drive'];
 
 function settings(env) {
   const baseUrl = env.DAYBOOK_BASE_URL || env.DENTAL_MONITORING_DASHBOARD_BASE_URL;
@@ -52,14 +56,14 @@ async function oauthToken(config, fields, fetcher) {
   return result;
 }
 
-export function createDriveServer({ env = process.env, store, fetcher = fetch } = {}) {
+export function createDriveServer({ env = process.env, store, access, fetcher = fetch } = {}) {
   const config = settings(env);
   store ||= new DriveStore({
     databaseId: env.FIRESTORE_DATABASE_ID || env.DAYBOOK_DATABASE_ID || 'daybook-db',
     encryptionKey: env.DAYBOOK_ENCRYPTION_KEY || env.DENTAL_MONITORING_DASHBOARD_ENCRYPTION_KEY,
   });
   const verifier = new OAuth2Client(config.clientId);
-  const access = async user => {
+  access ||= async user => {
     const token = await oauthToken(config, { refresh_token: user.refreshToken, grant_type: 'refresh_token' }, fetcher);
     return new DriveApi(token.access_token, fetcher);
   };
@@ -69,6 +73,7 @@ export function createDriveServer({ env = process.env, store, fetcher = fetch } 
     let error = '';
     try {
       const user = await store.getUser(userId);
+      if (!user?.folderId) throw new Error('No Google Drive folder connected yet. Please select a folder in Settings.');
       result = await ingestFolder({ userId, folderId: user.folderId, drive: await access(user), store });
     } catch (cause) { error = cause.message; }
     await store.finishScan(userId, result || null, error);
@@ -109,8 +114,8 @@ export function createDriveServer({ env = process.env, store, fetcher = fetch } 
           ]
         });
       }
-      if ((req.method === 'GET' || req.method === 'HEAD') && (url.pathname === '/' || url.pathname === '/drive.js' || url.pathname === '/drive.css' || url.pathname === '/favicon.svg')) {
-        const filename = url.pathname === '/' ? 'drive.html' : url.pathname.slice(1);
+      if ((req.method === 'GET' || req.method === 'HEAD') && (url.pathname === '/' || url.pathname === '/drive.js' || url.pathname === '/drive.css' || url.pathname === '/favicon.svg' || url.pathname === '/terms' || url.pathname === '/terms.html' || url.pathname === '/terms.js' || url.pathname === '/settings' || url.pathname === '/settings.html' || url.pathname === '/settings.js' || url.pathname === '/theme.js')) {
+        const filename = (url.pathname === '/' || url.pathname === '') ? 'drive.html' : (url.pathname === '/terms' || url.pathname === '/terms.html') ? 'terms.html' : (url.pathname === '/settings' || url.pathname === '/settings.html') ? 'settings.html' : url.pathname.slice(1);
         const type = filename.endsWith('.html') ? 'text/html' : filename.endsWith('.js') ? 'text/javascript' : filename.endsWith('.svg') ? 'image/svg+xml' : 'text/css';
         if (req.method === 'HEAD') {
           res.writeHead(200, { 'Content-Type': `${type}; charset=utf-8`, 'Cache-Control': 'no-store' });
@@ -140,11 +145,63 @@ export function createDriveServer({ env = process.env, store, fetcher = fetch } 
       const userId = session.userId;
       if (url.pathname === '/api/me' && req.method === 'GET') {
         const user = await store.getUser(userId);
-        return json(res, 200, { csrf: session.csrf, user: { email: user.email, name: user.name, picture: user.picture, folderId: user.folderId, folderName: user.folderName, scheduleMinutes: user.scheduleMinutes, lastScanAt: user.lastScanAt || '', lastScanResult: user.lastScanResult || null, lastScanError: user.lastScanError || '', nextScanAt: user.nextScanAt || null } });
+        return json(res, 200, {
+          csrf: session.csrf,
+          user: {
+            email: user.email,
+            name: user.name,
+            picture: user.picture,
+            folderId: user.folderId,
+            folderName: user.folderName,
+            scheduleMinutes: user.scheduleMinutes,
+            lastScanAt: user.lastScanAt || '',
+            lastScanResult: user.lastScanResult || null,
+            lastScanError: user.lastScanError || '',
+            nextScanAt: user.nextScanAt || null,
+            termsAcceptedAt: user.termsAcceptedAt || null,
+            onboardedAt: user.onboardedAt || null,
+          }
+        });
       }
-      if (url.pathname === '/api/folders' && req.method === 'GET') return json(res, 200, { folders: await (await access(await store.getUser(userId))).listFolders() });
+      if (url.pathname === '/api/onboarded' && req.method === 'POST') {
+        const bodyData = await body(req);
+        if (typeof store.setOnboarded === 'function') {
+          await store.setOnboarded(userId, { termsAccepted: bodyData.termsAccepted !== false, completed: bodyData.completed !== false });
+        }
+        return json(res, 200, { ok: true });
+      }
+      if (url.pathname === '/api/source-status' && req.method === 'GET') {
+        const user = await store.getUser(userId);
+        if (!user.folderId) {
+          return json(res, 200, { available: false, reason: 'no_folder', message: 'No Google Drive folder configured.' });
+        }
+        try {
+          const drive = await access(user);
+          const folder = await drive.getFolder(user.folderId);
+          return json(res, 200, { available: true, folder: { id: folder.id, name: folder.name } });
+        } catch (err) {
+          const isNotFound = /not found|404|select a google drive folder/i.test(err.message);
+          return json(res, 200, {
+            available: false,
+            reason: isNotFound ? 'not_found' : 'error',
+            message: isNotFound ? 'Google Drive source folder was removed or is inaccessible.' : err.message
+          });
+        }
+      }
+      if (url.pathname === '/api/folders' && req.method === 'GET') {
+        const parentId = url.searchParams.get('parentId') || 'root';
+        const drive = await access(await store.getUser(userId));
+        const folders = await drive.listFolders(parentId);
+        const ownFolders = folders.filter(f => !f.isShared);
+        const sharedFolders = folders.filter(f => Boolean(f.isShared));
+        return json(res, 200, { folders, ownFolders, sharedFolders });
+      }
       if (url.pathname === '/api/folder' && req.method === 'POST') {
-        const { folderId } = await body(req);
+        let { folderId } = await body(req);
+        if (typeof folderId === 'string') {
+          const match = folderId.match(/folders\/([\w-]+)/);
+          if (match) folderId = match[1];
+        }
         if (typeof folderId !== 'string' || !/^[\w-]{10,}$/.test(folderId)) throw new Error('Choose a valid Drive folder.');
         const folder = await (await access(await store.getUser(userId))).getFolder(folderId);
         await store.setFolder(userId, folder);
@@ -152,12 +209,28 @@ export function createDriveServer({ env = process.env, store, fetcher = fetch } 
       }
       if (url.pathname === '/api/schedule' && req.method === 'POST') {
         const { minutes } = await body(req);
-        if (![1440, 2880, 4320, 10080].includes(minutes)) throw new Error('Choose a supported refresh interval (minimum once per day).');
+        if (![0, 1440, 2880, 4320, 10080].includes(minutes)) throw new Error('Choose a supported refresh interval (Manual, or minimum once per day).');
         await store.setSchedule(userId, minutes);
         return json(res, 200, { minutes });
       }
-      if (url.pathname === '/api/refresh' && req.method === 'POST') return json(res, 200, { result: await scan(userId) });
+      if (url.pathname === '/api/import-stats' && req.method === 'GET') {
+        const stats = typeof store.getImportStats === 'function' ? await store.getImportStats(userId) : { totalSuccessful: 0, totalErrors: 0, recentImports: [] };
+        return json(res, 200, stats);
+      }
+      if (url.pathname === '/api/refresh' && req.method === 'POST') {
+        const result = await scan(userId);
+        return json(res, 200, { result, lastScanAt: new Date().toISOString() });
+      }
       if (url.pathname === '/api/reports' && req.method === 'GET') return json(res, 200, { reports: await store.reports(userId) });
+      if (url.pathname === '/api/reports/resolve-conflict' && req.method === 'POST') {
+        const { date, keepVersionId } = await body(req);
+        if (!date || !keepVersionId) throw new Error('Specify the report date and version to keep.');
+        if (typeof store.resolveDuplicateReport === 'function') {
+          const report = await store.resolveDuplicateReport(userId, date, keepVersionId);
+          return json(res, 200, { ok: true, report });
+        }
+        return json(res, 200, { ok: true });
+      }
       if (url.pathname === '/api/logout' && req.method === 'POST') {
         await store.deleteSession(sessionToken);
         return json(res, 200, { ok: true }, {
@@ -170,6 +243,15 @@ export function createDriveServer({ env = process.env, store, fetcher = fetch } 
       if (url.pathname === '/api/stop-sync' && req.method === 'POST') {
         await store.stopSync(userId);
         await store.deleteSession(sessionToken);
+        return json(res, 200, { ok: true }, {
+          'Set-Cookie': [
+            setCookie(SESSION, '', config.secure, 0),
+            setCookie('daybook_session', '', config.secure, 0)
+          ]
+        });
+      }
+      if (url.pathname === '/api/delete-all-data' && req.method === 'POST') {
+        await store.deleteAllUserData(userId);
         return json(res, 200, { ok: true }, {
           'Set-Cookie': [
             setCookie(SESSION, '', config.secure, 0),

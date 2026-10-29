@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseDashboardItems } from '../src/pdf-report.mjs';
+import { parseDashboardItems, isDashboardReportFormat, UnsupportedFormatError } from '../src/pdf-report.mjs';
 
 const item = (str, x, y) => ({ str, x, y, page: 1 });
 const items = [
@@ -31,4 +31,26 @@ test('PDF text parser keeps the report date, exact score, and hourly detail sepa
 test('PDF text parser rejects an incomplete or inconsistent report before archiving', () => {
   assert.throws(() => parseDashboardItems(items.filter(entry => entry.str !== 'oct. 27, 2026')), /Daily Report Date/);
   assert.throws(() => parseDashboardItems(items.map(entry => entry.x === 1180 ? { ...entry, str: '20' } : entry)), /do not match/);
+});
+
+test('isDashboardReportFormat distinguishes daily reports from arbitrary PDFs', () => {
+  assert.equal(isDashboardReportFormat(items), true);
+
+  // Unrelated PDF: invoice items
+  const invoiceItems = [
+    item('Invoice #INV-2026', 10, 1000),
+    item('Customer: Acme Corp', 10, 950),
+    item('Subtotal: $400.00', 10, 900),
+    item('Total: $420.00', 10, 850)
+  ];
+  assert.equal(isDashboardReportFormat(invoiceItems), false);
+
+  // Unrelated PDF without individual score
+  const noScore = items.filter(e => e.str !== 'individual_score');
+  assert.equal(isDashboardReportFormat(noScore), false);
+
+  // Parsing an unrelated PDF throws UnsupportedFormatError
+  assert.throws(() => parseDashboardItems(invoiceItems), (err) => {
+    return err instanceof UnsupportedFormatError || err.code === 'UNSUPPORTED_FORMAT';
+  });
 });

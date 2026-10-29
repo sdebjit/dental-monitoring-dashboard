@@ -1,10 +1,42 @@
 import { createHash } from 'node:crypto';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
+export class UnsupportedFormatError extends Error {
+  constructor(message = 'The file is not a supported Daily Performance Report format.') {
+    super(message);
+    this.name = 'UnsupportedFormatError';
+    this.code = 'UNSUPPORTED_FORMAT';
+    this.isUnsupportedFormat = true;
+  }
+}
+
+export function isUnsupportedReportError(error) {
+  if (!error) return false;
+  if (error instanceof UnsupportedFormatError || error.code === 'UNSUPPORTED_FORMAT' || error.isUnsupportedFormat) {
+    return true;
+  }
+  const msg = String(error.message || '').toLowerCase();
+  return msg.includes('not a supported') ||
+         msg.includes('unsupported format') ||
+         msg.includes('daily report date is missing') ||
+         msg.includes('choose a pdf report no larger than') ||
+         msg.includes('the report must contain 1 to 10 pages') ||
+         msg.includes('missing its individual score or cases total') ||
+         msg.includes('does not contain hourly details');
+}
+
+export function isDashboardReportFormat(items) {
+  if (!Array.isArray(items) || !items.length) return false;
+  const hasDailyDate = items.some(item => typeof item.str === 'string' && item.str.toLowerCase() === 'daily report date');
+  const hasScore = items.some(item => typeof item.str === 'string' && (item.str.toLowerCase() === 'individual_score' || item.str.toLowerCase() === 'individual score'));
+  const hasTotal = items.some(item => typeof item.str === 'string' && item.str.toLowerCase() === 'total');
+  return hasDailyDate && hasScore && hasTotal;
+}
+
 function parseReportingDate(value) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error('Daily Report Date is invalid.');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new UnsupportedFormatError('Daily Report Date is invalid.');
   const date = new Date(`${value}T00:00:00.000Z`);
-  if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== value) throw new Error('Daily Report Date is invalid.');
+  if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== value) throw new UnsupportedFormatError('Daily Report Date is invalid.');
   return value;
 }
 
@@ -25,7 +57,7 @@ function displayedDate(text) {
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return parseReportingDate(value);
   const match = value.match(/^([\p{L}]+)\.?\s+(\d{1,2}),?\s+(\d{4})$/u);
   const month = match && MONTHS.get(match[1].toLowerCase().slice(0, 4)) || (match && MONTHS.get(match[1].toLowerCase().slice(0, 3)));
-  if (!month) throw new Error('Daily Report Date is missing or uses an unsupported format.');
+  if (!month) throw new UnsupportedFormatError('Daily Report Date is missing or uses an unsupported format.');
   return parseReportingDate(`${match[3]}-${String(month).padStart(2, '0')}-${String(Number(match[2])).padStart(2, '0')}`);
 }
 
@@ -55,13 +87,13 @@ function dailyRecord(date, metric, value, unit, aggregation = 'latest') {
 export async function parseDashboardPdf(input) {
   const bytes = Buffer.from(input);
   if (bytes.length < 100 || bytes.length > MAX_BYTES || bytes.subarray(0, 5).toString() !== '%PDF-') {
-    throw new Error('Choose a PDF report no larger than 20 MiB.');
+    throw new UnsupportedFormatError('Choose a PDF report no larger than 20 MiB.');
   }
   const task = getDocument({ data: new Uint8Array(bytes), useSystemFonts: true, stopAtErrors: true });
   const items = [];
   try {
     const pdf = await task.promise;
-    if (pdf.numPages < 1 || pdf.numPages > 10) throw new Error('The report must contain 1 to 10 pages.');
+    if (pdf.numPages < 1 || pdf.numPages > 10) throw new UnsupportedFormatError('The report must contain 1 to 10 pages.');
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
       const page = await pdf.getPage(pageNumber);
       for (const item of (await page.getTextContent()).items) {
@@ -69,6 +101,9 @@ export async function parseDashboardPdf(input) {
       }
       page.cleanup();
     }
+  } catch (err) {
+    if (err instanceof UnsupportedFormatError) throw err;
+    throw new UnsupportedFormatError(`Failed to read PDF document: ${err.message}`);
   } finally { await task.destroy(); }
 
   return parseDashboardItems(items, bytes);
@@ -78,12 +113,19 @@ export function parseDashboardItems(items, bytes = Buffer.alloc(0)) {
   const lines = groupedLines(items);
   const label = (name) => items.filter(item => item.str.toLowerCase() === name.toLowerCase()).sort((a, b) => b.y - a.y)[0];
   const dateLabel = label('Daily Report Date');
+  if (!dateLabel) {
+    throw new UnsupportedFormatError('Daily Report Date is missing or uses an unsupported format.');
+  }
   const date = displayedDate(nearestBelow(items, dateLabel, { maxX: 180, maxY: 45 }));
-  const individualScore = amount(nearestBelow(items, label('individual_score'), { maxX: 120, maxY: 30, numeric: true }));
+  const scoreLabel = label('individual_score') || label('individual score');
+  if (!scoreLabel) {
+    throw new UnsupportedFormatError('The report is missing its individual score or cases total.');
+  }
+  const individualScore = amount(nearestBelow(items, scoreLabel, { maxX: 120, maxY: 30, numeric: true }));
   const totalLine = lines.find(line => line.items.some(item => item.str === 'Total'));
   const totalLabel = totalLine?.items.find(item => item.str === 'Total');
   const casesFinished = amount(totalLine?.items.find(item => item.x > totalLabel.x && amount(item.str) !== null)?.str);
-  if (individualScore === null || casesFinished === null) throw new Error('The report is missing its individual score or cases total.');
+  if (individualScore === null || casesFinished === null) throw new UnsupportedFormatError('The report is missing its individual score or cases total.');
 
   const details = [];
   const dateTime = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;

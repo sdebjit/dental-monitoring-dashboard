@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Terms & Conditions · Dental Monitoring Dashboard</title>
+  <link rel="icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/drive.css?v=2.1">
+  <script src="/theme.js"></script>
+  <script src="/terms.js" defer></script>
+  <style>
+    .terms-card {
+      width: 100%;
+      padding: clamp(24px, 4vw, 44px);
+      box-sizing: border-box;
+    }
+    .terms-card h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--zinc-950, #09090b);
+      margin-bottom: 6px;
+      letter-spacing: -0.025em;
+    }
+    .terms-card .updated {
+      font-size: 13px;
+      color: var(--zinc-500, #71717a);
+      margin-bottom: 32px;
+      display: block;
+    }
+    .terms-section {
+      margin-bottom: 32px;
+    }
+    .terms-section:last-child {
+      margin-bottom: 0;
+    }
+    .terms-section h2 {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--zinc-950, #09090b);
+      margin-bottom: 10px;
+      letter-spacing: -0.015em;
+    }
+    .terms-section p, .terms-section ul {
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: var(--zinc-600, #52525b);
+      margin-bottom: 12px;
+    }
+    .terms-section ul {
+      padding-left: 20px;
+    }
+    .terms-section li {
+      margin-bottom: 8px;
+    }
+    .terms-section code {
+      font-family: var(--font-mono, monospace);
+      font-size: 12.5px;
+      background: var(--zinc-100, #f4f4f5);
+      border: 1px solid var(--zinc-200, #e4e4e7);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: var(--zinc-800, #27272a);
+    }
+    [data-theme="dark"] .terms-card h1,
+    [data-theme="dark"] .terms-section h2,
+    [data-theme="dark"] .terms-section strong {
+      color: #ffffff;
+    }
+    [data-theme="dark"] .terms-section p,
+    [data-theme="dark"] .terms-section ul,
+    [data-theme="dark"] .terms-section li {
+      color: #d4d4d8;
+    }
+    [data-theme="dark"] .terms-card .updated {
+      color: #71717a;
+    }
+    [data-theme="dark"] .terms-section code {
+      background: #1f1f23;
+      border-color: #27272a;
+      color: #f4f4f5;
+    }
+    @media (max-width: 600px) {
+      .terms-card {
+        padding: 20px 16px;
+      }
+      .terms-card h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="nav-container">
+      <a class="brand" href="/" aria-label="Dental Monitoring Dashboard">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="36" height="36" rx="9" fill="#09090b"/>
+            <path d="M8 18.5H12.5L15.5 11.5L20.5 24.5L23.5 18.5H28" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">Dental Monitoring</span>
+          <span class="brand-badge">Pipeline</span>
+        </div>
+      </a>
+      <div class="nav-actions">
+        <div id="account"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="nav-back-row">
+      <a class="back-link" href="/">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
+        <span>Back to Dashboard</span>
+      </a>
+    </div>
+
+    <article class="card terms-card">
+      <h1>Terms &amp; Conditions</h1>
+      <span class="updated">Last updated: October 2026</span>
+
+      <div class="terms-section">
+        <h2>1. Purpose of the Platform</h2>
+        <p>This site is built exclusively to track the productivity of users at Dental Monitoring. No clinical data is involved here—it is an operational dashboard designed to ensure teams have all their performance and throughput data tracking organized under one place.</p>
+      </div>
+
+      <div class="terms-section">
+        <h2>2. All Reports Remain in Your Google Drive</h2>
+        <p>Your reports belong entirely to you. All original PDF files uploaded or saved by you remain safely stored in your own Google Drive:</p>
+        <ul>
+          <li><strong>No External Document Copies:</strong> This application does not download or store copies of your PDF files on external file servers. Files are processed on-the-fly directly from your designated Google Drive folder.</li>
+          <li><strong>In-Place Archiving:</strong> After a PDF report is successfully validated and ingested, the pipeline automatically moves the file into an <code>archive</code> subfolder located directly inside your chosen Google Drive folder to prevent duplicate imports.</li>
+          <li><strong>Zero Deletion:</strong> The pipeline never deletes or removes any files from your Google Drive.</li>
+        </ul>
+      </div>
+
+      <div class="terms-section">
+        <h2>3. Productivity Tracking Only — No Clinical Data Involved</h2>
+        <p><strong>This site is solely built to track productivity of the users at Dental Monitoring. No clinical data is involved here.</strong> The platform does not process, extract, or store any medical or clinical data. It is purely an operational dashboard to keep all your throughput and activity tracking under one place.</p>
+        <p>The pipeline strictly and exclusively extracts high-level operational and workflow metrics required to power your dashboard. Specifically, we store only the following fields in Cloud Firestore:</p>
+        <ul>
+          <li><code>date</code>: The calendar date of the monitoring report (YYYY-MM-DD).</li>
+          <li><code>casesFinished</code>: The total number of monitoring cases completed by the operator during the report period.</li>
+          <li><code>individualScore</code>: The operator efficiency or productivity score recorded on the daily report.</li>
+          <li><code>details</code>: Aggregate summary breakdown of shifts, hours, and activity category totals.</li>
+          <li><code>records</code>: Itemized hourly counts of processed monitoring cases.</li>
+          <li><code>metadata</code>: Report export timestamp, page count, and a cryptographic checksum (<code>sha256</code>) of the file content used solely to prevent duplicate ingestion.</li>
+          <li><code>sourceFileId</code> &amp; <code>sourceFileName</code>: Google Drive file identifiers linking the record back to the original PDF in your Drive.</li>
+          <li><code>ingestedAt</code>: The ISO timestamp indicating when the record was processed by the pipeline.</li>
+        </ul>
+      </div>
+
+      <div class="terms-section">
+        <h2>4. What We Do With the Data</h2>
+        <p>The extracted operational metrics are used exclusively for the following functionality:</p>
+        <ul>
+          <li><strong>Dashboard Visualization:</strong> Aggregating and displaying your completed case counts, daily efficiency scores, and performance trends in your authenticated dashboard view.</li>
+          <li><strong>Audit Consistency Checking:</strong> Cross-verifying that hourly activity itemizations match total completed cases to flag corrupted or incomplete reports before storing.</li>
+          <li><strong>Duplicate Prevention:</strong> Tracking cryptographic checksums (<code>sha256</code>) and file identifiers so previously imported files are automatically skipped during subsequent scans.</li>
+          <li><strong>Strict Confidentiality:</strong> Your data is strictly isolated to your authenticated account. We <strong>never</strong> sell, monetize, share, rent, or train public AI models on your operational metrics.</li>
+        </ul>
+      </div>
+
+      <div class="terms-section">
+        <h2>5. Self-Service Complete Data Deletion &amp; Tool Flush</h2>
+        <p>You retain full ownership and control over all stored data. At any time, you can permanently delete all existing data and completely flush the tool:</p>
+        <ul>
+          <li><strong>Instant Tool Flush ("Delete all data &amp; flush tool"):</strong> Clicking this option in your dashboard immediately and permanently purges all parsed reports, metrics history, file tracking records, user settings, active sessions, and Google OAuth tokens from our Cloud Firestore database.</li>
+          <li><strong>Your Google Drive Remains Untouched:</strong> Flushing and deleting your data from this platform has zero impact on your Google Drive. All your original PDF reports and archived files in your Google Drive remain completely preserved.</li>
+        </ul>
+      </div>
+
+      <div class="terms-section">
+        <h2>6. Google Drive Permissions &amp; Access Scope</h2>
+        <p>To operate seamlessly, the application requests access to Google Drive via official Google OAuth APIs:</p>
+        <ul>
+          <li><strong>Folder-Isolated Scope:</strong> The application only inspects and reads files inside the specific Google Drive folder explicitly designated by you. No other files in your Google Drive are accessed or modified.</li>
+          <li><strong>Token Encryption:</strong> Google OAuth refresh tokens are encrypted at rest using AES-256-GCM with keys managed in secure Google Cloud infrastructure.</li>
+          <li><strong>Disconnection:</strong> You can disconnect sync at any time using the "Stop syncing &amp; disconnect Drive" button or via your Google Account Security panel.</li>
+        </ul>
+      </div>
+
+      <div class="terms-section">
+        <h2>7. Operational Verification</h2>
+        <p>While the automated parser performs automated consistency checks between summary figures and itemized hourly rows, operators remain responsible for reviewing summary totals for operational auditing.</p>
+      </div>
+    </article>
+  </main>
+</body>
+</html>
