@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Daybook · Report pipeline</title>
+  <link rel="icon" href="/favicon.svg">
+  <link rel="stylesheet" href="/drive.css">
+  <script src="/drive.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header><div><p class="eyebrow">DAYBOOK</p><h1>Your reports, in one place.</h1><p class="lede">Export your dashboard as a PDF and place it in your chosen Google Drive folder. Daybook reads the report and moves it to <strong>archive</strong> after a successful import.</p></div><div id="account"></div></header>
+    <p id="message" role="status" aria-live="polite"></p>
+    <section id="signin" class="card hidden"><h2>Connect Google Drive</h2><p>Sign in with Google to choose one folder. Google will request Drive-wide access so Daybook can read PDFs you upload later and move processed files. Daybook processes only the folder you choose and its archive.</p><a class="button" href="/auth/login">Sign in with Google</a></section>
+    <div id="workspace" class="hidden">
+      <div class="grid">
+        <section class="card"><div class="card-head"><span class="step">01</span><h2>Choose your folder</h2></div><p id="current-folder" class="muted"></p><div class="row"><select id="folders" aria-label="Google Drive folder"><option value="">Loading folders…</option></select><button id="choose-folder">Use folder</button></div><p class="hint">Only PDFs directly inside this folder are imported. Processed PDFs move into its archive subfolder.</p></section>
+        <section class="card"><div class="card-head"><span class="step">02</span><h2>Refresh</h2></div><label for="schedule">Check for new PDFs</label><div class="row"><select id="schedule"><option value="1440">Every day</option><option value="2880">Every 2 days</option><option value="4320">Every 3 days</option><option value="10080">Every week</option></select><button id="save-schedule">Save</button></div><button id="refresh" class="button secondary">Refresh now</button><p id="scan-status" class="hint"></p></section>
+      </div>
+      <section class="card reports"><div class="card-head"><span class="step">03</span><h2>Imported reports</h2></div><div id="reports"></div></section>
+      <p class="hint"><button id="stop-sync" class="link-button">Stop syncing and disconnect Drive</button> · This removes Daybook's stored Google access. Your imported reports remain available if you reconnect.</p>
+    </div>
+  </main>
+</body>
+</html>

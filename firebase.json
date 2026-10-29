@@ -1,0 +1,21 @@
+{
+  "hosting": {
+    "site": "dental-monitoring-dashboard",
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "daybook",
+          "region": "europe-southwest1"
+        }
+      }
+    ]
+  }
+}
+

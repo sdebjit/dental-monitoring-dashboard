@@ -1,0 +1,20 @@
+{
+  "name": "daybook",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A multiuser Google Drive PDF report pipeline.",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node src/drive-server.mjs",
+    "test": "node --test",
+    "check": "node scripts/check.mjs"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "^7.11.6",
+    "google-auth-library": "^10.3.0",
+    "pdfjs-dist": "^6.4.299"
+  }
+}

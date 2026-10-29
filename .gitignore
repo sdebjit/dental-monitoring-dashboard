@@ -1,0 +1,16 @@
+node_modules/
+.env
+.env.*
+*.env
+*.sqlite
+*.sqlite-*
+.local-data/
+.firebase/
+firebase-debug.log*
+.DS_Store
+*.pem
+*.key
+client_secret*.json
+service_account*.json
+*.log
+
