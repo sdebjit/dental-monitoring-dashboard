@@ -5580,17 +5580,32 @@ body.onboarding-mode .shell {
 
 /* 2. Tablets & Mobile Landscape / Portrait (max-width: 860px) */
 @media (max-width: 860px) {
-  /* Onboarding Full-Screen Layout Fixes */
-  .reui-onboarding-wrapper {
+  /* Onboarding Full-Screen Layout Fixes (Only when active and NOT hidden) */
+  .reui-onboarding-wrapper:not(.hidden) {
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
     height: auto !important;
     min-height: 100vh;
     min-height: 100dvh;
     padding: 12px 10px !important;
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
     position: fixed !important;
     inset: 0 !important;
+  }
+
+  .reui-onboarding-wrapper.hidden,
+  .date-range-popover.hidden,
+  .workspace-container.hidden,
+  .top-error-banner.hidden,
+  .source-alert-card.hidden,
+  .fun-facts-card.hidden,
+  .chart-card.hidden,
+  .telemetry-kpi-grid.hidden,
+  .reui-login-container.hidden,
+  .dashboard-toolbar.hidden,
+  .empty-record-space-card.hidden {
+    display: none !important;
   }
 
   .reui-onboarding-layout {
@@ -5729,7 +5744,7 @@ body.onboarding-mode .shell {
   }
 
   /* Date Range Popover Bottom Sheet on Mobile */
-  .date-range-popover {
+  .date-range-popover:not(.hidden) {
     position: fixed !important;
     top: auto !important;
     bottom: 0 !important;
