@@ -125,8 +125,19 @@ export function createDriveServer({ env = process.env, store, access, fetcher = 
           ]
         });
       }
-      if ((req.method === 'GET' || req.method === 'HEAD') && (url.pathname === '/' || url.pathname === '/drive.js' || url.pathname === '/drive.css' || url.pathname === '/favicon.svg' || url.pathname === '/terms' || url.pathname === '/terms.html' || url.pathname === '/terms.js' || url.pathname === '/settings' || url.pathname === '/settings.html' || url.pathname === '/settings.js' || url.pathname === '/theme.js')) {
-        const filename = (url.pathname === '/' || url.pathname === '') ? 'drive.html' : (url.pathname === '/terms' || url.pathname === '/terms.html') ? 'terms.html' : (url.pathname === '/settings' || url.pathname === '/settings.html') ? 'settings.html' : url.pathname.slice(1);
+      const isStaticRoute = url.pathname === '/' ||
+        url.pathname === '/drive.js' || url.pathname === '/drive.css' || url.pathname === '/favicon.svg' ||
+        url.pathname === '/terms' || url.pathname === '/terms.html' || url.pathname === '/terms.js' ||
+        url.pathname === '/privacy' || url.pathname === '/privacy.html' ||
+        url.pathname === '/settings' || url.pathname === '/settings.html' || url.pathname === '/settings.js' ||
+        url.pathname === '/theme.js' || /^\/google[a-z0-9]+\.html$/i.test(url.pathname);
+
+      if ((req.method === 'GET' || req.method === 'HEAD') && isStaticRoute) {
+        const filename = (url.pathname === '/' || url.pathname === '') ? 'drive.html' :
+                         (url.pathname === '/terms' || url.pathname === '/terms.html') ? 'terms.html' :
+                         (url.pathname === '/privacy' || url.pathname === '/privacy.html') ? 'privacy.html' :
+                         (url.pathname === '/settings' || url.pathname === '/settings.html') ? 'settings.html' :
+                         url.pathname.slice(1);
         const type = filename.endsWith('.html') ? 'text/html' : filename.endsWith('.js') ? 'text/javascript' : filename.endsWith('.svg') ? 'image/svg+xml' : 'text/css';
         if (req.method === 'HEAD') {
           res.writeHead(200, { 'Content-Type': `${type}; charset=utf-8`, 'Cache-Control': 'no-store' });

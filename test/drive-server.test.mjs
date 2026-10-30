@@ -336,5 +336,18 @@ test('api/profile updates user name and api/onboarded persists custom name', asy
   await server.listeners('request')[0](req3, res3);
   assert.equal(res3.status, 200);
   assert.equal(updatedName, 'Dr. Jane');
+
+  // 4. Test /terms and /privacy serve privacy policy and Google Limited Use disclosure
+  const resTerms = { headers: {}, status: 0, payload: '', setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s) { this.status = s; }, end(v = '') { this.payload = v; } };
+  await server.listeners('request')[0]({ method: 'GET', url: '/terms', headers: {} }, resTerms);
+  assert.equal(resTerms.status, 200);
+  assert.ok(resTerms.payload.includes('Google API Services User Data Policy'));
+  assert.ok(resTerms.payload.includes('Limited Use'));
+
+  const resPrivacy = { headers: {}, status: 0, payload: '', setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s) { this.status = s; }, end(v = '') { this.payload = v; } };
+  await server.listeners('request')[0]({ method: 'GET', url: '/privacy', headers: {} }, resPrivacy);
+  assert.equal(resPrivacy.status, 200);
+  assert.ok(resPrivacy.payload.includes('Google API Services User Data Policy'));
+  assert.ok(resPrivacy.payload.includes('Limited Use'));
 });
 
