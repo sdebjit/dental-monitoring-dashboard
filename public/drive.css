@@ -3838,6 +3838,14 @@ button:disabled, .btn:disabled {
   flex: 1;
 }
 
+.input-hint {
+  font-size: 12px;
+  color: var(--zinc-500);
+  line-height: 1.5;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
 @media (max-width: 600px) {
   .settings-inline-action {
     flex-direction: column;
