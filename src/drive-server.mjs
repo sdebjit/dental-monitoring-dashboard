@@ -151,7 +151,21 @@ export function createDriveServer({ env = process.env, store, access, fetcher = 
       if (!session) return json(res, 401, { error: 'Sign in with Google to continue.' });
       if (req.method !== 'GET') {
         const csrfHeader = req.headers['x-daybook-csrf'] || req.headers['x-dental-monitoring-dashboard-csrf'];
-        if (req.headers.origin !== config.base || csrfHeader !== session.csrf) return json(res, 403, { error: 'Security check failed. Reload the page.' });
+        const origin = req.headers.origin;
+        let originMatches = origin === config.base;
+        if (!originMatches && origin) {
+          try {
+            const reqUrl = new URL(origin);
+            const baseObj = new URL(config.base);
+            if (baseObj.protocol === 'http:' &&
+                (reqUrl.hostname === 'localhost' || reqUrl.hostname === '127.0.0.1') &&
+                (baseObj.hostname === 'localhost' || baseObj.hostname === '127.0.0.1') &&
+                reqUrl.port === baseObj.port) {
+              originMatches = true;
+            }
+          } catch (_) {}
+        }
+        if (!originMatches || csrfHeader !== session.csrf) return json(res, 403, { error: 'Security check failed. Reload the page.' });
       }
       const userId = session.userId;
       if (url.pathname === '/api/me' && req.method === 'GET') {

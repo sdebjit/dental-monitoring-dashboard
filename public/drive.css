@@ -3807,6 +3807,44 @@ button:disabled, .btn:disabled {
   color: #16a34a;
 }
 
+.settings-profile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-profile-account {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--zinc-50);
+  border: 1px solid var(--zinc-200);
+  border-radius: var(--radius-md);
+}
+
+.settings-name-group {
+  max-width: 520px;
+}
+
+.settings-inline-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.settings-inline-action .reui-input {
+  flex: 1;
+}
+
+@media (max-width: 600px) {
+  .settings-inline-action {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 /* Folder Minimized View (Default) */
 .folder-minimized-box {
   display: flex;

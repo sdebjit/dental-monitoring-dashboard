@@ -239,6 +239,42 @@ function renderUserMenu(user) {
   });
 }
 
+/* Profile Settings */
+function initProfileSettings(user) {
+  const nameInput = $('settings-name-input');
+  if (nameInput) {
+    nameInput.value = user.name || '';
+  }
+  const emailEl = $('settings-user-email');
+  if (emailEl) {
+    emailEl.textContent = user.email || '';
+  }
+  const avatarCircle = $('settings-avatar-circle');
+  if (avatarCircle) {
+    if (user.picture) {
+      avatarCircle.innerHTML = `<img src="${user.picture}" alt="" class="onboard-avatar-img">`;
+    } else {
+      const initial = (user.name || user.email || 'U').charAt(0).toUpperCase();
+      avatarCircle.innerHTML = `<span id="settings-avatar-fallback">${initial}</span>`;
+    }
+  }
+
+  const saveBtn = $('settings-save-name-btn');
+  if (saveBtn) {
+    saveBtn.onclick = () => action(saveBtn, async () => {
+      const name = (nameInput.value || '').trim();
+      if (!name) throw new Error('Please enter a display name.');
+      await post('/api/profile', { name });
+      currentUser.name = name;
+      renderUserMenu(currentUser);
+      if (avatarCircle && !currentUser.picture) {
+        avatarCircle.innerHTML = `<span id="settings-avatar-fallback">${name.charAt(0).toUpperCase()}</span>`;
+      }
+      message('Display name updated successfully.');
+    });
+  }
+}
+
 /* Schedule Controls */
 function initSchedule(minutes) {
   const val = String(minutes ?? 1440);
@@ -681,6 +717,7 @@ async function load() {
     csrf = token;
     currentUser = user;
     renderUserMenu(user);
+    initProfileSettings(user);
     initSchedule(user.scheduleMinutes);
     initFolderView(user);
     initDeleteModal();
