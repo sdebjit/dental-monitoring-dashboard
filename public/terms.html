@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Terms & Conditions · Dental Monitoring Dashboard</title>
+  <title>Privacy Policy &amp; Terms of Service · Dental Monitoring Dashboard</title>
   <link rel="icon" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/drive.css?v=2.1">
+  <link rel="stylesheet" href="/drive.css?v=2.2">
   <script src="/theme.js"></script>
   <script src="/terms.js" defer></script>
   <style>
@@ -27,8 +27,28 @@
     .terms-card .updated {
       font-size: 13px;
       color: var(--zinc-500, #71717a);
-      margin-bottom: 32px;
+      margin-bottom: 24px;
       display: block;
+    }
+    .terms-nav-tabs {
+      display: flex;
+      gap: 12px;
+      border-bottom: 1px solid var(--zinc-200, #e4e4e7);
+      margin-bottom: 28px;
+      padding-bottom: 8px;
+    }
+    .terms-nav-tab {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--zinc-600, #52525b);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm, 6px);
+      transition: all 0.15s ease;
+    }
+    .terms-nav-tab.active, .terms-nav-tab:hover {
+      color: var(--zinc-950, #09090b);
+      background: var(--zinc-100, #f4f4f5);
     }
     .terms-section {
       margin-bottom: 32px;
@@ -37,23 +57,51 @@
       margin-bottom: 0;
     }
     .terms-section h2 {
-      font-size: 17px;
-      font-weight: 600;
+      font-size: 18px;
+      font-weight: 700;
       color: var(--zinc-950, #09090b);
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       letter-spacing: -0.015em;
     }
-    .terms-section p, .terms-section ul {
+    .terms-section h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--zinc-900, #18181b);
+      margin-top: 16px;
+      margin-bottom: 8px;
+    }
+    .terms-section p, .terms-section ul, .terms-section ol {
       font-size: 14.5px;
-      line-height: 1.65;
+      line-height: 1.7;
       color: var(--zinc-600, #52525b);
       margin-bottom: 12px;
     }
-    .terms-section ul {
-      padding-left: 20px;
+    .terms-section ul, .terms-section ol {
+      padding-left: 22px;
     }
     .terms-section li {
       margin-bottom: 8px;
+    }
+    .terms-callout {
+      background: var(--zinc-50, #fafafa);
+      border: 1px solid var(--zinc-200, #e4e4e7);
+      border-left: 4px solid #2563eb;
+      padding: 16px 20px;
+      border-radius: var(--radius-md, 8px);
+      margin: 18px 0;
+    }
+    .terms-callout.highlight {
+      border-left-color: #16a34a;
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+    }
+    .terms-callout p {
+      color: var(--zinc-800, #27272a);
+      font-size: 14px;
+      margin-bottom: 0;
+    }
+    .terms-callout.highlight p {
+      color: #166534;
     }
     .terms-section code {
       font-family: var(--font-mono, monospace);
@@ -64,23 +112,60 @@
       border-radius: 4px;
       color: var(--zinc-800, #27272a);
     }
+    .terms-section a {
+      color: #2563eb;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
     [data-theme="dark"] .terms-card h1,
     [data-theme="dark"] .terms-section h2,
+    [data-theme="dark"] .terms-section h3,
     [data-theme="dark"] .terms-section strong {
       color: #ffffff;
     }
     [data-theme="dark"] .terms-section p,
     [data-theme="dark"] .terms-section ul,
+    [data-theme="dark"] .terms-section ol,
     [data-theme="dark"] .terms-section li {
       color: #d4d4d8;
     }
     [data-theme="dark"] .terms-card .updated {
       color: #71717a;
     }
+    [data-theme="dark"] .terms-nav-tabs {
+      border-color: #27272a;
+    }
+    [data-theme="dark"] .terms-nav-tab {
+      color: #a1a1aa;
+    }
+    [data-theme="dark"] .terms-nav-tab.active,
+    [data-theme="dark"] .terms-nav-tab:hover {
+      color: #ffffff;
+      background: #27272a;
+    }
+    [data-theme="dark"] .terms-callout {
+      background: #18181b;
+      border-color: #27272a;
+      border-left-color: #3b82f6;
+    }
+    [data-theme="dark"] .terms-callout p {
+      color: #e4e4e7;
+    }
+    [data-theme="dark"] .terms-callout.highlight {
+      background: #052e16;
+      border-color: #166534;
+      border-left-color: #22c55e;
+    }
+    [data-theme="dark"] .terms-callout.highlight p {
+      color: #bbf7d0;
+    }
     [data-theme="dark"] .terms-section code {
       background: #1f1f23;
       border-color: #27272a;
       color: #f4f4f5;
+    }
+    [data-theme="dark"] .terms-section a {
+      color: #60a5fa;
     }
     @media (max-width: 600px) {
       .terms-card {
@@ -122,73 +207,148 @@
     </div>
 
     <article class="card terms-card">
-      <h1>Terms &amp; Conditions</h1>
-      <span class="updated">Last updated: October 2026</span>
+      <h1>Privacy Policy &amp; Terms of Service</h1>
+      <span class="updated">Last updated and effective: October 30, 2026</span>
+
+      <nav class="terms-nav-tabs" aria-label="Legal navigation">
+        <a href="#privacy-policy" class="terms-nav-tab active">Privacy Policy</a>
+        <a href="#limited-use" class="terms-nav-tab">Google API Limited Use</a>
+        <a href="#terms-of-service" class="terms-nav-tab">Terms of Service</a>
+      </nav>
+
+      <!-- PRIVACY POLICY SECTION -->
+      <section id="privacy-policy" class="terms-section">
+        <h2>Part I: Privacy Policy</h2>
+        <p>This Privacy Policy explains how <strong>Dental Monitoring Dashboard</strong> ("the Application", "we", "our") collects, uses, processes, stores, and protects your information when you access or use our platform at <code>https://dental-monitoring-dashboard.web.app/</code>.</p>
+        <p>We are committed to full transparency regarding data privacy and strictly honor user ownership of all documents and operational telemetry.</p>
+      </section>
 
       <div class="terms-section">
-        <h2>1. Purpose of the Platform</h2>
-        <p>This site is built exclusively to track the productivity of users at Dental Monitoring. No clinical data is involved here—it is an operational dashboard designed to ensure teams have all their performance and throughput data tracking organized under one place.</p>
+        <h2>1. Application Overview &amp; Purpose</h2>
+        <p>Dental Monitoring Dashboard is an operational productivity analytics platform designed exclusively for tracking daily monitoring operator throughput, completed cases, and performance telemetry.</p>
+        <div class="terms-callout highlight">
+          <p><strong>Productivity Tracking Only — No Clinical Data:</strong> The application does not process, inspect, extract, or retain any medical, patient, diagnostic, or clinical information. It is strictly an operational productivity telemetry tool to organize workflow case counts and hourly throughput in one unified dashboard.</p>
+        </div>
       </div>
 
       <div class="terms-section">
-        <h2>2. All Reports Remain in Your Google Drive</h2>
-        <p>Your reports belong entirely to you. All original PDF files uploaded or saved by you remain safely stored in your own Google Drive:</p>
+        <h2>2. Google User Data We Access &amp; Collect</h2>
+        <p>When you authenticate with Google and connect your Google Drive, the application requests the following Google OAuth 2.0 scopes:</p>
+        
+        <h3>A. Identity &amp; Profile Scopes (<code>openid</code>, <code>email</code>, <code>profile</code>)</h3>
         <ul>
-          <li><strong>No External Document Copies:</strong> This application does not download or store copies of your PDF files on external file servers. Files are processed on-the-fly directly from your designated Google Drive folder.</li>
-          <li><strong>In-Place Archiving:</strong> After a PDF report is successfully validated and ingested, the pipeline automatically moves the file into an <code>archive</code> subfolder located directly inside your chosen Google Drive folder to prevent duplicate imports.</li>
-          <li><strong>Zero Deletion:</strong> The pipeline never deletes or removes any files from your Google Drive.</li>
+          <li><strong>Email Address:</strong> Used as your unique account identifier and to associate your workspace data.</li>
+          <li><strong>Profile Name:</strong> Used to personalize dashboard welcome greetings and PDF export headings. You can customize your display name at any time in Settings.</li>
+          <li><strong>Profile Picture URL:</strong> Used to render your user avatar in the top navigation bar.</li>
+        </ul>
+
+        <h3>B. Google Drive Scope (<code>https://www.googleapis.com/auth/drive</code>)</h3>
+        <ul>
+          <li><strong>Designated Folder Inspection:</strong> The application only accesses the specific Google Drive folder that you explicitly select or provide during onboarding or in Settings.</li>
+          <li><strong>Reading Daily Productivity PDFs:</strong> The application scans your chosen folder solely to read daily operator productivity summary PDFs placed there by you or your team.</li>
+          <li><strong>In-Place Archiving:</strong> Once a PDF report is parsed and verified, the pipeline moves the processed PDF into an <code>archive/</code> subfolder inside your designated Google Drive folder to prevent duplicate imports.</li>
+          <li><strong>Zero Deletion Guarantee:</strong> The application <strong>never deletes</strong> any files or folders from your Google Drive.</li>
+          <li><strong>Folder Isolation:</strong> We never read, inspect, or modify any files outside your designated folder.</li>
         </ul>
       </div>
 
       <div class="terms-section">
-        <h2>3. Productivity Tracking Only — No Clinical Data Involved</h2>
-        <p><strong>This site is solely built to track productivity of the users at Dental Monitoring. No clinical data is involved here.</strong> The platform does not process, extract, or store any medical or clinical data. It is purely an operational dashboard to keep all your throughput and activity tracking under one place.</p>
-        <p>The pipeline strictly and exclusively extracts high-level operational and workflow metrics required to power your dashboard. Specifically, we store only the following fields in Cloud Firestore:</p>
+        <h2>3. Data Extracted &amp; Stored in Cloud Firestore</h2>
+        <p>When a daily report is processed from your Drive, only high-level numerical and operational metadata fields are saved to our secure Cloud Firestore database:</p>
         <ul>
-          <li><code>date</code>: The calendar date of the monitoring report (YYYY-MM-DD).</li>
-          <li><code>casesFinished</code>: The total number of monitoring cases completed by the operator during the report period.</li>
-          <li><code>individualScore</code>: The operator efficiency or productivity score recorded on the daily report.</li>
-          <li><code>details</code>: Aggregate summary breakdown of shifts, hours, and activity category totals.</li>
-          <li><code>records</code>: Itemized hourly counts of processed monitoring cases.</li>
-          <li><code>metadata</code>: Report export timestamp, page count, and a cryptographic checksum (<code>sha256</code>) of the file content used solely to prevent duplicate ingestion.</li>
-          <li><code>sourceFileId</code> &amp; <code>sourceFileName</code>: Google Drive file identifiers linking the record back to the original PDF in your Drive.</li>
-          <li><code>ingestedAt</code>: The ISO timestamp indicating when the record was processed by the pipeline.</li>
+          <li><code>date</code>: The calendar date of the report (YYYY-MM-DD).</li>
+          <li><code>casesFinished</code>: Total completed monitoring cases recorded for that day.</li>
+          <li><code>individualScore</code>: Efficiency and quality score recorded on the report.</li>
+          <li><code>records</code> &amp; <code>details</code>: Hourly aggregate counts of completed cases across active shifts.</li>
+          <li><code>metadata</code>: SHA-256 cryptographic checksum of the file content (used strictly to detect and prevent duplicate imports), timestamp, and page count.</li>
+          <li><code>sourceFileId</code> &amp; <code>sourceFileName</code>: Google Drive file identifiers to link records back to your original PDF in Google Drive.</li>
+          <li><code>scheduleMinutes</code>: Your background sync frequency preference (e.g., Manual, Daily, Weekly).</li>
+        </ul>
+        <div class="terms-callout">
+          <p><strong>No External Document Copies:</strong> We do <strong>not</strong> download, clone, or store copies of your PDF files on external servers. All original files stay exclusively in your own Google Drive at all times.</p>
+        </div>
+      </div>
+
+      <div class="terms-section" id="limited-use">
+        <h2>4. Google API Services User Data Policy &amp; Limited Use Disclosure</h2>
+        <div class="terms-callout highlight">
+          <p><strong>Mandatory Limited Use Compliance:</strong> Dental Monitoring Dashboard's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer">Google API Services User Data Policy</a>, including the <strong>Limited Use</strong> requirements.</p>
+        </div>
+      </div>
+
+      <div class="terms-section">
+        <h2>5. Prohibition on Third-Party Sharing, Advertising &amp; AI Training</h2>
+        <p>We strictly protect the confidentiality of your Google user data and operational metrics:</p>
+        <ul>
+          <li><strong>No Selling or Renting:</strong> We do <strong>never</strong> sell, rent, monetize, or trade your personal data or Google user data under any circumstances.</li>
+          <li><strong>No Advertising or Marketing:</strong> We never share or transfer your data to advertising platforms, data brokers, or marketing networks.</li>
+          <li><strong>No AI/ML Model Training:</strong> We do <strong>never</strong> use your Google user data or report metrics to train, fine-tune, or develop artificial intelligence (AI) or machine learning (ML) models.</li>
+          <li><strong>No Third-Party Transfers:</strong> Your data is never transferred to third parties, except as strictly required to host the secure backend infrastructure on Google Cloud Platform / Firebase.</li>
         </ul>
       </div>
 
       <div class="terms-section">
-        <h2>4. What We Do With the Data</h2>
-        <p>The extracted operational metrics are used exclusively for the following functionality:</p>
+        <h2>6. Data Security &amp; Encryption Standards</h2>
+        <p>We employ enterprise-grade security protocols to protect your credentials and data:</p>
         <ul>
-          <li><strong>Dashboard Visualization:</strong> Aggregating and displaying your completed case counts, daily efficiency scores, and performance trends in your authenticated dashboard view.</li>
-          <li><strong>Audit Consistency Checking:</strong> Cross-verifying that hourly activity itemizations match total completed cases to flag corrupted or incomplete reports before storing.</li>
-          <li><strong>Duplicate Prevention:</strong> Tracking cryptographic checksums (<code>sha256</code>) and file identifiers so previously imported files are automatically skipped during subsequent scans.</li>
-          <li><strong>Strict Confidentiality:</strong> Your data is strictly isolated to your authenticated account. We <strong>never</strong> sell, monetize, share, rent, or train public AI models on your operational metrics.</li>
+          <li><strong>AES-256-GCM Token Encryption:</strong> Google OAuth refresh tokens are encrypted at rest using AES-256-GCM with hardware-isolated encryption keys.</li>
+          <li><strong>HTTPS / TLS Everywhere:</strong> All communications between your browser, our servers, and Google APIs are secured with TLS 1.3 encryption.</li>
+          <li><strong>Cross-Site Protection:</strong> All API requests require strict CSRF validation and origin verification.</li>
+          <li><strong>Firestore Access Control:</strong> User data in Cloud Firestore is strictly isolated by authenticated user ID; no user can access or view another user's metrics.</li>
         </ul>
       </div>
 
       <div class="terms-section">
-        <h2>5. Self-Service Complete Data Deletion &amp; Tool Flush</h2>
-        <p>You retain full ownership and control over all stored data. At any time, you can permanently delete all existing data and completely flush the tool:</p>
+        <h2>7. Data Retention, Revocation &amp; Self-Service Deletion</h2>
+        <p>You have complete control over your data and access permissions at all times:</p>
         <ul>
-          <li><strong>Instant Tool Flush ("Delete all data &amp; flush tool"):</strong> Clicking this option in your dashboard immediately and permanently purges all parsed reports, metrics history, file tracking records, user settings, active sessions, and Google OAuth tokens from our Cloud Firestore database.</li>
-          <li><strong>Your Google Drive Remains Untouched:</strong> Flushing and deleting your data from this platform has zero impact on your Google Drive. All your original PDF reports and archived files in your Google Drive remain completely preserved.</li>
+          <li><strong>Instant Self-Service Data Deletion ("Delete all data"):</strong> In the Settings page (<code>/settings</code>), clicking "Delete all data" immediately and permanently erases all your parsed reports, telemetry records, user settings, active sessions, and stored OAuth credentials from our database.</li>
+          <li><strong>Google Account Revocation:</strong> You can revoke the application's access to your Google Account at any time via your <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">Google Account Security Permissions</a> page.</li>
+          <li><strong>Disconnection:</strong> You can stop background polling and disconnect your Drive folder anytime via Settings.</li>
+          <li><strong>Drive Preserved:</strong> Deleting your account or disconnecting the tool has zero impact on your Google Drive—all your original and archived PDFs remain in your Drive.</li>
         </ul>
       </div>
 
       <div class="terms-section">
-        <h2>6. Google Drive Permissions &amp; Access Scope</h2>
-        <p>To operate seamlessly, the application requests access to Google Drive via official Google OAuth APIs:</p>
+        <h2>8. Contact Information for Privacy Inquiries</h2>
+        <p>If you have any questions, concerns, or requests regarding this Privacy Policy or the handling of your data, please contact the application maintainer:</p>
         <ul>
-          <li><strong>Folder-Isolated Scope:</strong> The application only inspects and reads files inside the specific Google Drive folder explicitly designated by you. No other files in your Google Drive are accessed or modified.</li>
-          <li><strong>Token Encryption:</strong> Google OAuth refresh tokens are encrypted at rest using AES-256-GCM with keys managed in secure Google Cloud infrastructure.</li>
-          <li><strong>Disconnection:</strong> You can disconnect sync at any time using the "Stop syncing &amp; disconnect Drive" button or via your Google Account Security panel.</li>
+          <li><strong>Application:</strong> Dental Monitoring Dashboard</li>
+          <li><strong>Support &amp; Developer Email:</strong> <a href="mailto:debjitincasa@gmail.com">debjitincasa@gmail.com</a></li>
+          <li><strong>Homepage:</strong> <a href="https://dental-monitoring-dashboard.web.app/">https://dental-monitoring-dashboard.web.app/</a></li>
+        </ul>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid var(--zinc-200, #e4e4e7); margin: 40px 0;">
+
+      <!-- TERMS OF SERVICE SECTION -->
+      <section id="terms-of-service" class="terms-section">
+        <h2>Part II: Terms of Service</h2>
+        <p>By signing into Dental Monitoring Dashboard and connecting your Google Drive folder, you agree to these Terms of Service.</p>
+      </section>
+
+      <div class="terms-section">
+        <h2>1. Permitted Use</h2>
+        <p>Dental Monitoring Dashboard is provided as an internal operational productivity assistant for monitoring operators. You agree to use the service only for lawful purposes in accordance with these Terms.</p>
+      </div>
+
+      <div class="terms-section">
+        <h2>2. User Responsibilities</h2>
+        <ul>
+          <li>You are responsible for ensuring that the Google Drive folder connected to the service contains only intended daily productivity report PDFs.</li>
+          <li>You agree not to upload malicious files, non-report binary content, or automated scripts into the monitored folder.</li>
+          <li>Operators remain responsible for reviewing summary metrics for auditing and operational consistency.</li>
         </ul>
       </div>
 
       <div class="terms-section">
-        <h2>7. Operational Verification</h2>
-        <p>While the automated parser performs automated consistency checks between summary figures and itemized hourly rows, operators remain responsible for reviewing summary totals for operational auditing.</p>
+        <h2>3. Disclaimer &amp; Limitation of Liability</h2>
+        <p>The service is provided on an "as is" and "as available" basis without warranties of any kind. While automated checks verify summary totals against hourly rows, the application is not liable for data entry discrepancies originating in the source PDF reports.</p>
+      </div>
+
+      <div class="terms-section">
+        <h2>4. Changes to Terms</h2>
+        <p>We may update these Privacy Policy and Terms of Service periodically. Any material modifications will be reflected with an updated effective date at the top of this page.</p>
       </div>
     </article>
   </main>
