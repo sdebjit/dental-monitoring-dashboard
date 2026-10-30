@@ -324,5 +324,17 @@ test('api/profile updates user name and api/onboarded persists custom name', asy
   assert.equal(updatedName, 'Dr. Jane Smith, DDS');
   assert.equal(onboardedState.name, 'Dr. Jane Smith, DDS');
   assert.equal(onboardedState.completed, true);
+
+  // 3. Test local dev origin check (e.g. 127.0.0.1 matching localhost base)
+  const res3 = { headers: {}, status: 0, payload: '', setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s) { this.status = s; }, end(v = '') { this.payload = v; } };
+  const req3 = {
+    method: 'POST',
+    url: '/api/profile',
+    headers: { cookie: 'daybook_session=user-token', origin: 'http://127.0.0.1', 'x-daybook-csrf': 'csrf-1', 'content-type': 'application/json' },
+    async *[Symbol.asyncIterator]() { yield Buffer.from(JSON.stringify({ name: 'Dr. Jane' })); }
+  };
+  await server.listeners('request')[0](req3, res3);
+  assert.equal(res3.status, 200);
+  assert.equal(updatedName, 'Dr. Jane');
 });
 

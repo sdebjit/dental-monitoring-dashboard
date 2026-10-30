@@ -2948,18 +2948,26 @@ function updateOnboardingView() {
   }
 }
 
+function updateWelcomeTitle(name) {
+  const welcomeTitle = $('welcome-title');
+  if (!welcomeTitle) return;
+  const displayName = (name || currentUser?.name || '').trim();
+  welcomeTitle.textContent = displayName ? `Welcome, ${displayName}` : 'Welcome';
+}
+
 function initOnboarding() {
-  // Sync name changes in real time to avatar fallback and user menu
+  // Sync name changes in real time to avatar fallback, user menu, and welcome title
   const nameInput = $('onboard-name-input');
   if (nameInput) {
     nameInput.addEventListener('input', () => {
       const val = nameInput.value.trim();
-      if (val && currentUser) {
-        currentUser.name = val;
+      if (currentUser) {
+        if (val) currentUser.name = val;
         renderUserMenu(currentUser);
+        updateWelcomeTitle(val || currentUser.name);
         const fallback = $('onboard-avatar-fallback');
         if (fallback && !currentUser.picture) {
-          fallback.textContent = val.charAt(0).toUpperCase();
+          fallback.textContent = (val || currentUser.name || 'U').charAt(0).toUpperCase();
         }
       }
     });
@@ -2977,6 +2985,7 @@ function initOnboarding() {
       }
       if (currentUser) currentUser.name = name;
       renderUserMenu(currentUser);
+      updateWelcomeTitle(name);
       try {
         await post('/api/profile', { name });
       } catch (_) {}
@@ -3041,6 +3050,7 @@ function initOnboarding() {
       const name = ($('onboard-name-input')?.value || currentUser?.name || '').trim();
       if (name && currentUser) currentUser.name = name;
       renderUserMenu(currentUser);
+      updateWelcomeTitle(name || currentUser?.name);
       await post('/api/onboarded', { termsAccepted: true, completed: true, name });
       document.body.classList.remove('onboarding-mode');
       $('onboarding').classList.add('hidden');
@@ -3056,6 +3066,7 @@ function initOnboarding() {
     reviewSettingsBtn.onclick = async () => {
       const name = ($('onboard-name-input')?.value || currentUser?.name || '').trim();
       if (name && currentUser) currentUser.name = name;
+      updateWelcomeTitle(name || currentUser?.name);
       await post('/api/onboarded', { termsAccepted: true, completed: true, name });
       document.body.classList.remove('onboarding-mode');
       window.location.href = '/settings';
@@ -3144,10 +3155,7 @@ async function load() {
   if (closeBtn) closeBtn.onclick = hideTopError;
 
   // Set personalized welcome title
-  const welcomeTitle = $('welcome-title');
-  if (welcomeTitle) {
-    welcomeTitle.textContent = user.name ? `Welcome, ${user.name}` : 'Welcome';
-  }
+  updateWelcomeTitle(user.name);
 
   // Wire workspace refresh button (fetches live source and ingests)
   const refreshBtn = $('workspace-refresh-btn');

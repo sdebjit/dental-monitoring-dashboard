@@ -50,7 +50,43 @@
       </div>
     </div>
 
-    <!-- Section 1: Refresh Schedule -->
+    <!-- Section 1: Profile & Display Name -->
+    <section class="card settings-card">
+      <div class="card-head">
+        <div class="section-icon-wrap" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <div>
+          <h3>Profile &amp; Display Name</h3>
+          <p class="card-desc">Manage the name displayed on your workspace headers and daily productivity reports.</p>
+        </div>
+      </div>
+
+      <div class="settings-profile-body">
+        <div class="settings-profile-account">
+          <div id="settings-avatar-circle" class="onboard-avatar-circle">
+            <span id="settings-avatar-fallback">U</span>
+          </div>
+          <div class="settings-avatar-details">
+            <span class="avatar-label">Connected Google Account</span>
+            <span id="settings-user-email" class="avatar-email-text">user@example.com</span>
+          </div>
+        </div>
+        <div class="form-group settings-name-group">
+          <label for="settings-name-input">Display Name <span class="required">*</span></label>
+          <div class="settings-inline-action">
+            <input id="settings-name-input" type="text" placeholder="Your display name" autocomplete="name" class="reui-input">
+            <button id="settings-save-name-btn" class="btn btn-primary" type="button">Save Changes</button>
+          </div>
+          <p class="input-hint">Changes will reflect across your dashboard welcome greeting and PDF export reports.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Refresh Schedule -->
     <section class="card settings-card">
       <div class="card-head">
         <div class="section-icon-wrap" aria-hidden="true">

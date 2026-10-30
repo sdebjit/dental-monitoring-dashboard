@@ -39,7 +39,12 @@ export class DriveStore {
     const existing = (await ref.get()).data() || {};
     const token = refreshToken ? this.encrypt(refreshToken) : existing.refreshToken;
     if (!token) throw new Error('Google did not provide offline access. Please reconnect and grant consent.');
-    const resolvedName = (existing.name && existing.name !== profile.email) ? existing.name : (profile.name || profile.email);
+    let resolvedName = profile.name || profile.email;
+    if (existing.customName && existing.name) {
+      resolvedName = existing.name;
+    } else if (existing.name && existing.name !== profile.email && !profile.name) {
+      resolvedName = existing.name;
+    }
     const resolvedPicture = profile.picture || existing.picture || '';
     await ref.set({ email: profile.email, name: resolvedName, picture: resolvedPicture, refreshToken: token, scheduleMinutes: Math.max(existing.scheduleMinutes ?? 1440, 1440), folderId: existing.folderId || null, folderName: existing.folderName || '', nextScanAt: existing.nextScanAt ?? null, updatedAt: new Date().toISOString() }, { merge: true });
   }
@@ -64,7 +69,7 @@ export class DriveStore {
   }
   async updateUserName(userId, name) {
     if (!name || typeof name !== 'string') return;
-    await this.user(userId).set({ name: name.trim(), updatedAt: new Date().toISOString() }, { merge: true });
+    await this.user(userId).set({ name: name.trim(), customName: true, updatedAt: new Date().toISOString() }, { merge: true });
   }
   async setOnboarded(userId, { termsAccepted = true, completed = true, name } = {}) {
     const update = {
@@ -74,6 +79,7 @@ export class DriveStore {
     };
     if (name && typeof name === 'string' && name.trim()) {
       update.name = name.trim();
+      update.customName = true;
     }
     await this.user(userId).set(update, { merge: true });
   }
