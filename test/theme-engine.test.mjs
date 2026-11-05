@@ -114,3 +114,4 @@ test('theme dropdown elements reflect the current active theme', () => {
   env.context.setTheme('reui-light');
   assert.equal(mockSelect.value, 'reui-light');
 });
+
