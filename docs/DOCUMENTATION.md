@@ -402,3 +402,4 @@ Continuous deployment is managed via GitHub Actions:
      ```bash
      npx firebase-tools@latest deploy --only hosting --project daybook-ma
      ```
+
