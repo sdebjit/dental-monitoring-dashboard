@@ -404,7 +404,11 @@ export function createDriveServer({ env = process.env, store, access, fetcher = 
         const state = url.searchParams.get('state') || '';
         const cookieState = getOauthState(req);
         if (!state || state !== cookieState) throw new Error('Sign-in state did not match. Please try again.');
-        const codeVerifier = await store.consumeOauthState(state);
+        const rawVerifier = await store.consumeOauthState(state);
+        const codeVerifier = typeof rawVerifier === 'object' && rawVerifier !== null
+          ? (rawVerifier.codeVerifier || rawVerifier.verifier || '')
+          : (rawVerifier || '');
+        if (!codeVerifier) throw new Error('Sign-in state has expired. Please try again.');
         const token = await oauthToken(config, { code: url.searchParams.get('code') || '', code_verifier: codeVerifier, redirect_uri: `${config.base}/auth/callback`, grant_type: 'authorization_code' }, fetcher);
         const ticket = await verifier.verifyIdToken({ idToken: token.id_token, audience: config.clientId });
         let profile = ticket.getPayload();

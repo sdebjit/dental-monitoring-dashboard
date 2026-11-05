@@ -512,7 +512,8 @@ export class MemoryDriveStore {
   async consumeOauthState(state) {
     const data = this.oauthStatesMap.get(state);
     this.oauthStatesMap.delete(state);
-    return data || null;
+    if (!data) return null;
+    return typeof data === 'object' ? (data.codeVerifier || data.verifier || '') : data;
   }
 
   async cleanExpiredOauthStates(maxAgeMs = 10 * 60 * 1000) {
