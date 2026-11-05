@@ -89,39 +89,7 @@
   --shadow-lg: 0 8px 16px rgba(31, 27, 22, 0.06);
 }
 
-[data-theme="unslop-light"] body {
-  background-color: #f7f4ee !important;
-  color: #1f1b16 !important;
-}
-
-[data-theme="unslop-light"] .navbar {
-  background-color: rgba(247, 244, 238, 0.94) !important;
-  border-bottom: 1px solid rgba(31, 27, 22, 0.08) !important;
-}
-
-[data-theme="unslop-light"] .brand-title {
-  color: #1f1b16 !important;
-}
-
-[data-theme="unslop-light"] .card,
-[data-theme="unslop-light"] .kpi-card,
-[data-theme="unslop-light"] .user-menu-popover,
-[data-theme="unslop-light"] .notes-calendar-card,
-[data-theme="unslop-light"] .history-table-container,
-[data-theme="unslop-light"] .hourly-chart-card,
-[data-theme="unslop-light"] .reui-login-card {
-  background: #ffffff !important;
-  border-color: rgba(31, 27, 22, 0.08) !important;
-  box-shadow: 0 1px 3px rgba(31, 27, 22, 0.04) !important;
-}
-
-[data-theme="unslop-light"] .kpi-badge-black {
-  background: #1f1b16 !important;
-}
-
-[data-theme="unslop-light"] .app-page-loader {
-  background: #f7f4ee !important;
-}
+/* Root variables for Unslop themes are declared above. Comprehensive theme rules are defined in the dedicated Unslop section at the end of this stylesheet. */
 
 /* ==========================================================================
    Unslop Dark Theme (Warm Dark Graphite, Zero Harsh Glare, Inset Hairline Depth)
@@ -149,31 +117,6 @@
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
 }
 
-[data-theme="unslop-dark"] body {
-  background-color: #161513 !important;
-  color: #efe9de !important;
-}
-
-[data-theme="unslop-dark"] .navbar {
-  background-color: rgba(22, 21, 19, 0.94) !important;
-  border-bottom: 1px solid rgba(239, 233, 222, 0.08) !important;
-}
-
-[data-theme="unslop-dark"] .card,
-[data-theme="unslop-dark"] .kpi-card,
-[data-theme="unslop-dark"] .user-menu-popover,
-[data-theme="unslop-dark"] .notes-calendar-card,
-[data-theme="unslop-dark"] .history-table-container,
-[data-theme="unslop-dark"] .hourly-chart-card,
-[data-theme="unslop-dark"] .reui-login-card {
-  background: #1c1a18 !important;
-  border-color: rgba(239, 233, 222, 0.08) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-}
-
-[data-theme="unslop-dark"] .app-page-loader {
-  background: #161513 !important;
-}
 
 [data-theme*="dark"] body {
   background-color: #09090b;
@@ -7695,4 +7638,1222 @@ body.onboarding-mode .shell {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+
+/* ==========================================================================
+   UNSLOP SUITE: UNSLOP LIGHT & UNSLOP DARK
+   Built following /unslop skill principles (CC-BY-4.0 Damir Sokolovsky)
+   Direction:
+   - Product: Daily clinical monitoring telemetry and throughput pipeline for dental operators.
+   - Character: Calm, exact, instrument-grade, warm tactile craft.
+   - World: Clinical telemetry, nocturnal audit shifts, precision instruments, warm paper logs.
+   - Moments: Hourly velocity performance curve & 2D/3D precision telemetry cards.
+   - Signature: Calibrated hairline borders (0.08 opacity), inset top highlights, tabular mono data metrics.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   0. Shared Unslop Style Foundation
+   -------------------------------------------------------------------------- */
+[data-theme-style="unslop"] {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* Tabular figures for all telemetry, KPIs, charts, and metrics */
+[data-theme-style="unslop"] .kpi-total-cases-val,
+[data-theme-style="unslop"] .kpi-avg-day-val,
+[data-theme-style="unslop"] .kpi-avg-hour-val,
+[data-theme-style="unslop"] .kpi-velocity-val,
+[data-theme-style="unslop"] .fun-fact-value,
+[data-theme-style="unslop"] .chart-axis-text,
+[data-theme-style="unslop"] .chart-val-label,
+[data-theme-style="unslop"] .tooltip-stat-val,
+[data-theme-style="unslop"] .metric-val,
+[data-theme-style="unslop"] .history-table td:nth-child(2),
+[data-theme-style="unslop"] .history-table td:nth-child(3),
+[data-theme-style="unslop"] .history-table td:nth-child(4),
+[data-theme-style="unslop"] .cal-day-cell {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  font-variant-numeric: tabular-nums !important;
+  font-feature-settings: "tnum" 1 !important;
+}
+
+/* Nested radii & motion easing curve: cubic-bezier(0.22, 1, 0.36, 1) */
+[data-theme-style="unslop"] .btn-primary,
+[data-theme-style="unslop"] .btn-secondary,
+[data-theme-style="unslop"] .preset-btn,
+[data-theme-style="unslop"] .cal-nav-btn,
+[data-theme-style="unslop"] .date-range-trigger,
+[data-theme-style="unslop"] .theme-select-dropdown,
+[data-theme-style="unslop"] .kpi-card,
+[data-theme-style="unslop"] .card,
+[data-theme-style="unslop"] .user-menu-popover,
+[data-theme-style="unslop"] .date-range-popover,
+[data-theme-style="unslop"] .hourly-chart-card,
+[data-theme-style="unslop"] .notes-calendar-card,
+[data-theme-style="unslop"] .notes-card {
+  transition: background-color 140ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 140ms cubic-bezier(0.22, 1, 0.36, 1),
+              color 140ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 140ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 140ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* Subtle tactile press feedback */
+[data-theme-style="unslop"] .btn-primary:active,
+[data-theme-style="unslop"] .btn-secondary:active,
+[data-theme-style="unslop"] .preset-btn:active,
+[data-theme-style="unslop"] .cal-day-cell:active {
+  transform: scale(0.98) !important;
+}
+
+/* Sentence case & typography discipline: no shouting uppercase tracked labels */
+[data-theme-style="unslop"] .fun-fact-tag,
+[data-theme-style="unslop"] .kpi-tag,
+[data-theme-style="unslop"] .table-header-cell,
+[data-theme-style="unslop"] .imports-table-row.header,
+[data-theme-style="unslop"] .metric-label,
+[data-theme-style="unslop"] .tooltip-stat-label {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-weight: 500 !important;
+}
+
+/* --------------------------------------------------------------------------
+   1. UNSLOP LIGHT THEME (Warm Paper / Stone ramp, Quiet Hairlines, Crafted Depth)
+   -------------------------------------------------------------------------- */
+[data-theme="unslop-light"] body {
+  background-color: #f7f4ee !important;
+  color: #1f1b16 !important;
+}
+
+/* App loader & shell */
+[data-theme="unslop-light"] .app-page-loader {
+  background: #f7f4ee !important;
+  color: #1f1b16 !important;
+}
+
+[data-theme="unslop-light"] .loader-status-text {
+  color: #5e554a !important;
+}
+
+[data-theme="unslop-light"] .loader-spinner-ring {
+  border-color: rgba(31, 27, 22, 0.12) !important;
+  border-top-color: #0f766e !important;
+}
+
+/* Frosted tactile navigation bar */
+[data-theme="unslop-light"] .navbar {
+  background-color: rgba(247, 244, 238, 0.88) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid rgba(31, 27, 22, 0.08) !important;
+}
+
+[data-theme="unslop-light"] .brand-title {
+  color: #1f1b16 !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="unslop-light"] .brand-icon rect {
+  fill: #1f1b16 !important;
+}
+
+[data-theme="unslop-light"] .brand-icon path {
+  stroke: #f7f4ee !important;
+}
+
+/* Live pulse status dot - quiet, calibrated, no excessive blur */
+[data-theme="unslop-light"] .avatar-status-dot {
+  background-color: #16a34a !important;
+  box-shadow: 0 0 0 2px #f7f4ee, 0 0 0 3px rgba(22, 163, 74, 0.25) !important;
+  animation: none !important;
+}
+
+/* Cards & containers in Warm Paper Light */
+[data-theme="unslop-light"] .card,
+[data-theme="unslop-light"] .kpi-card,
+[data-theme="unslop-light"] .fun-facts-card,
+[data-theme="unslop-light"] .hourly-chart-card,
+[data-theme="unslop-light"] .notes-calendar-card,
+[data-theme="unslop-light"] .notes-card,
+[data-theme="unslop-light"] .history-table-container,
+[data-theme="unslop-light"] .reui-login-card,
+[data-theme="unslop-light"] .auth-showcase-inner,
+[data-theme="unslop-light"] .onboarding-card,
+[data-theme="unslop-light"] .settings-card,
+[data-theme="unslop-light"] .terms-card,
+[data-theme="unslop-light"] .terms-table-of-contents,
+[data-theme="unslop-light"] .modal-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(31, 27, 22, 0.08) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 3px rgba(31, 27, 22, 0.04), 0 1px 2px rgba(31, 27, 22, 0.02) !important;
+  color: #1f1b16 !important;
+}
+
+/* Floating popovers */
+[data-theme="unslop-light"] .user-menu-popover,
+[data-theme="unslop-light"] .date-range-popover {
+  background: #ffffff !important;
+  border: 1px solid rgba(31, 27, 22, 0.08) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 32px rgba(31, 27, 22, 0.08), 0 2px 6px rgba(31, 27, 22, 0.03) !important;
+  color: #1f1b16 !important;
+}
+
+/* User Menu & Dropdown */
+[data-theme="unslop-light"] .menu-user-name {
+  color: #1f1b16 !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="unslop-light"] .menu-user-email {
+  color: #7b7266 !important;
+}
+
+[data-theme="unslop-light"] .menu-divider {
+  border-bottom: 1px solid rgba(31, 27, 22, 0.08) !important;
+}
+
+[data-theme="unslop-light"] .menu-action-item {
+  color: #1f1b16 !important;
+  border-radius: 8px !important;
+}
+
+[data-theme="unslop-light"] .menu-action-item svg {
+  color: #7b7266 !important;
+}
+
+[data-theme="unslop-light"] .menu-action-item:hover {
+  background: #efe9df !important;
+  color: #1f1b16 !important;
+}
+
+[data-theme="unslop-light"] .menu-action-item:hover svg {
+  color: #1f1b16 !important;
+}
+
+[data-theme="unslop-light"] .menu-action-item.logout {
+  color: #dc2626 !important;
+}
+
+[data-theme="unslop-light"] .menu-action-item.logout svg {
+  color: #dc2626 !important;
+}
+
+[data-theme="unslop-light"] .menu-action-item.logout:hover {
+  background: rgba(220, 38, 38, 0.08) !important;
+}
+
+/* Custom Theme Select Dropdown in Warm Paper */
+[data-theme="unslop-light"] .theme-select-dropdown {
+  background: #efe9df !important;
+  border: 1px solid rgba(31, 27, 22, 0.12) !important;
+  color: #1f1b16 !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  padding: 6px 28px 6px 12px !important;
+}
+
+[data-theme="unslop-light"] .theme-select-dropdown:hover {
+  background: #fdfbf7 !important;
+  border-color: rgba(31, 27, 22, 0.22) !important;
+}
+
+[data-theme="unslop-light"] .theme-select-dropdown:focus {
+  border-color: #0f766e !important;
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.25) !important;
+  outline: none !important;
+}
+
+[data-theme="unslop-light"] .theme-dropdown-arrow {
+  color: #5e554a !important;
+}
+
+/* Dashboard Toolbar & Period Selector */
+[data-theme="unslop-light"] .preset-btn {
+  background: transparent !important;
+  color: #5e554a !important;
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+}
+
+[data-theme="unslop-light"] .preset-btn:hover {
+  background: #efe9df !important;
+  color: #1f1b16 !important;
+}
+
+[data-theme="unslop-light"] .preset-btn.active {
+  background: #1f1b16 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(31, 27, 22, 0.12) !important;
+}
+
+[data-theme="unslop-light"] .date-range-trigger {
+  background: #ffffff !important;
+  border: 1px solid rgba(31, 27, 22, 0.12) !important;
+  border-radius: 8px !important;
+  color: #1f1b16 !important;
+  box-shadow: 0 1px 2px rgba(31, 27, 22, 0.04) !important;
+}
+
+[data-theme="unslop-light"] .date-range-trigger:hover {
+  background: #fdfbf7 !important;
+  border-color: rgba(31, 27, 22, 0.22) !important;
+}
+
+/* Dual-Month Calendar Popover */
+[data-theme="unslop-light"] .popover-presets {
+  background: #fdfbf7 !important;
+  border-right: 1px solid rgba(31, 27, 22, 0.08) !important;
+}
+
+[data-theme="unslop-light"] .month-title {
+  color: #1f1b16 !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="unslop-light"] .cal-weekday {
+  color: #7b7266 !important;
+  font-weight: 500 !important;
+}
+
+[data-theme="unslop-light"] .cal-nav-btn {
+  background: #ffffff !important;
+  border: 1px solid rgba(31, 27, 22, 0.12) !important;
+  color: #5e554a !important;
+  border-radius: 6px !important;
+}
+
+[data-theme="unslop-light"] .cal-nav-btn:hover {
+  background: #efe9df !important;
+  color: #1f1b16 !important;
+}
+
+[data-theme="unslop-light"] .cal-day-cell {
+  color: #5e554a !important;
+  border-radius: 6px !important;
+}
+
+[data-theme="unslop-light"] .cal-day-cell:hover:not(.is-endpoint) {
+  background: #efe9df !important;
+  color: #1f1b16 !important;
+}
+
+[data-theme="unslop-light"] .cal-day-cell.is-in-range {
+  background: #efe9df !important;
+  color: #1f1b16 !important;
+}
+
+[data-theme="unslop-light"] .cal-day-cell.is-endpoint {
+  background: #1f1b16 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="unslop-light"] .popover-actions {
+  border-top: 1px solid rgba(31, 27, 22, 0.08) !important;
+  background: #ffffff !important;
+}
+
+/* Fun Facts Bar - Clean tactile monochrome badges, NO rainbow hue gradients */
+[data-theme="unslop-light"] .fun-facts-card {
+  background: #fdfbf7 !important;
+  border: 1px solid rgba(31, 27, 22, 0.08) !important;
+}
+
+[data-theme="unslop-light"] .fun-fact-icon {
+  background: #efe9df !important;
+  border: 1px solid rgba(31, 27, 22, 0.08) !important;
+  box-shadow: none !important;
+}
+
+[data-theme="unslop-light"] .fun-badge-amber { background: #efe9df !important; }
+[data-theme="unslop-light"] .fun-badge-rose { background: #efe9df !important; }
+[data-theme="unslop-light"] .fun-badge-emerald { background: #efe9df !important; }
+[data-theme="unslop-light"] .fun-badge-slate { background: #efe9df !important; }
+[data-theme="unslop-light"] .fun-badge-violet { background: #efe9df !important; }
+
+[data-theme="unslop-light"] .fun-badge-amber svg { color: #b45309 !important; }
+[data-theme="unslop-light"] .fun-badge-rose svg { color: #be123c !important; }
+[data-theme="unslop-light"] .fun-badge-emerald svg { color: #0f766e !important; }
+[data-theme="unslop-light"] .fun-badge-slate svg { color: #475569 !important; }
+[data-theme="unslop-light"] .fun-badge-violet svg { color: #6d28d9 !important; }
+
+[data-theme="unslop-light"] .fun-fact-tag {
+  color: #7b7266 !important;
+}
+
+[data-theme="unslop-light"] .fun-fact-value {
+  color: #1f1b16 !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="unslop-light"] .fun-fact-meta {
+  color: #5e554a !important;
+}
+
+/* Telemetry KPI Cards - Clinical instrument precision, NO blue gradients */
+[data-theme="unslop-light"] .kpi-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(31, 27, 22, 0.08) !important;
+}
+
+[data-theme="unslop-light"] .kpi-icon-badge,
+[data-theme="unslop-light"] .kpi-badge-black,
+[data-theme="unslop-light"] .kpi-badge-blue {
+  background: #efe9df !important;
+  border: 1px solid rgba(31, 27, 22, 0.08) !important;
+  box-shadow: none !important;
+  color: #1f1b16 !important;
+}
+
+[data-theme="unslop-light"] .kpi-title,
+[data-theme="unslop-light"] .kpi-subhead {
+  color: #5e554a !important;
+  font-weight: 500 !important;
+}
+
+[data-theme="unslop-light"] .kpi-total-cases-val,
+[data-theme="unslop-light"] .kpi-avg-day-val,
+[data-theme="unslop-light"] .kpi-avg-hour-val,
+[data-theme="unslop-light"] .kpi-velocity-val {
+  color: #1f1b16 !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+}
+
+[data-theme="unslop-light"] .kpi-unit {
+  color: #7b7266 !important;
+}
+
+[data-theme="unslop-light"] .kpi-delta-pill,
+[data-theme="unslop-light"] .stat-indicator-pill {
+  background: #efe9df !important;
+  border: 1px solid rgba(31, 27, 22, 0.08) !important;
+  color: #5e554a !important;
+}
+
+[data-theme="unslop-light"] .stat-indicator-pill.positive,
+[data-theme="unslop-light"] .kpi-delta-positive {
+  background: rgba(22, 163, 74, 0.09) !important;
+  border-color: rgba(22, 163, 74, 0.18) !important;
+  color: #16a34a !important;
+}
+
+[data-theme="unslop-light"] .stat-indicator-pill.negative,
+[data-theme="unslop-light"] .kpi-delta-negative {
+  background: rgba(220, 38, 38, 0.09) !important;
+  border-color: rgba(220, 38, 38, 0.18) !important;
+  color: #dc2626 !important;
+}
+
+/* Hourly Productivity Line Chart (Moment 1) - Clinical Teal Instrument Line */
+[data-theme="unslop-light"] .chart-grid-line {
+  stroke: rgba(31, 27, 22, 0.06) !important;
+  stroke-dasharray: 2 3 !important;
+}
+
+[data-theme="unslop-light"] .chart-axis-line {
+  stroke: rgba(31, 27, 22, 0.12) !important;
+}
+
+[data-theme="unslop-light"] .chart-axis-text {
+  fill: #7b7266 !important;
+  font-size: 11px !important;
+}
+
+[data-theme="unslop-light"] .chart-line-path {
+  stroke: #0f766e !important;
+  stroke-width: 2.5px !important;
+}
+
+[data-theme="unslop-light"] .chart-node-circle {
+  fill: #ffffff !important;
+  stroke: #0f766e !important;
+  stroke-width: 2px !important;
+}
+
+[data-theme="unslop-light"] .chart-node-circle:hover {
+  fill: #0f766e !important;
+  stroke: #ffffff !important;
+  stroke-width: 2px !important;
+}
+
+[data-theme="unslop-light"] #hourly-area-gradient-single stop:first-child {
+  stop-color: #0f766e !important;
+  stop-opacity: 0.14 !important;
+}
+
+[data-theme="unslop-light"] #hourly-area-gradient-single stop:last-child {
+  stop-color: #0f766e !important;
+  stop-opacity: 0.0 !important;
+}
+
+/* High-contrast floating telemetry tooltip */
+[data-theme="unslop-light"] .hourly-chart-tooltip,
+[data-theme="unslop-light"] .chart-tooltip {
+  background: #1f1b16 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 24px rgba(31, 27, 22, 0.18) !important;
+  color: #f7f4ee !important;
+}
+
+[data-theme="unslop-light"] .chart-tooltip-header {
+  color: #cdc5b8 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="unslop-light"] .tooltip-stat-label {
+  color: #9c9284 !important;
+}
+
+[data-theme="unslop-light"] .tooltip-stat-val {
+  color: #ffffff !important;
+}
+
+/* Daily Cases Bar Chart */
+[data-theme="unslop-light"] .daily-bar-rect {
+  fill: #cdc5b8 !important;
+  transition: fill 140ms ease !important;
+}
+
+[data-theme="unslop-light"] .daily-bar-rect:hover {
+  fill: #0f766e !important;
+}
+
+[data-theme="unslop-light"] .daily-bar-rect.is-selected {
+  fill: #0f766e !important;
+}
+
+/* Daily Notes Feature & Modal (Moment 3) - Warm Amber Clinical Bar */
+[data-theme="unslop-light"] .notes-card {
+  border-left: 4px solid #b45309 !important;
+}
+
+[data-theme="unslop-light"] .notes-content-box {
+  background: #fdfbf7 !important;
+  border: 1px solid rgba(31, 27, 22, 0.08) !important;
+  border-radius: 10px !important;
+}
+
+[data-theme="unslop-light"] .notes-text-display {
+  color: #1f1b16 !important;
+  line-height: 1.6 !important;
+}
+
+[data-theme="unslop-light"] .notes-meta-footer {
+  color: #7b7266 !important;
+  border-top: 1px solid rgba(31, 27, 22, 0.08) !important;
+}
+
+[data-theme="unslop-light"] .notes-badge-tag {
+  color: #b45309 !important;
+}
+
+[data-theme="unslop-light"] .notes-cal-day-cell.has-note::after {
+  background-color: #b45309 !important;
+}
+
+/* Buttons in Warm Paper Light */
+[data-theme="unslop-light"] .btn-primary,
+[data-theme="unslop-light"] button.btn-primary,
+[data-theme="unslop-light"] .btn-full-continue {
+  background: #1f1b16 !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 2px rgba(31, 27, 22, 0.12) !important;
+  font-weight: 500 !important;
+}
+
+[data-theme="unslop-light"] .btn-primary:hover,
+[data-theme="unslop-light"] button.btn-primary:hover,
+[data-theme="unslop-light"] .btn-full-continue:hover {
+  background: #3d352b !important;
+}
+
+[data-theme="unslop-light"] .btn-secondary,
+[data-theme="unslop-light"] button.btn-secondary {
+  background: #ffffff !important;
+  border: 1px solid rgba(31, 27, 22, 0.12) !important;
+  color: #1f1b16 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 2px rgba(31, 27, 22, 0.04) !important;
+  font-weight: 500 !important;
+}
+
+[data-theme="unslop-light"] .btn-secondary:hover,
+[data-theme="unslop-light"] button.btn-secondary:hover {
+  background: #efe9df !important;
+  border-color: rgba(31, 27, 22, 0.22) !important;
+}
+
+/* Inputs, textareas, and select elements */
+[data-theme="unslop-light"] input[type="text"],
+[data-theme="unslop-light"] select,
+[data-theme="unslop-light"] textarea,
+[data-theme="unslop-light"] .form-select,
+[data-theme="unslop-light"] .form-textarea {
+  background: #efe9df !important;
+  border: 1px solid rgba(31, 27, 22, 0.12) !important;
+  border-radius: 8px !important;
+  color: #1f1b16 !important;
+}
+
+[data-theme="unslop-light"] input[type="text"]:focus,
+[data-theme="unslop-light"] select:focus,
+[data-theme="unslop-light"] textarea:focus,
+[data-theme="unslop-light"] .form-select:focus,
+[data-theme="unslop-light"] .form-textarea:focus {
+  border-color: #0f766e !important;
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.25) !important;
+  outline: none !important;
+}
+
+/* History table */
+[data-theme="unslop-light"] .imports-table-row.header {
+  border-bottom: 1px solid rgba(31, 27, 22, 0.08) !important;
+  color: #7b7266 !important;
+}
+
+[data-theme="unslop-light"] .imports-table-row {
+  border-bottom: 1px solid rgba(31, 27, 22, 0.05) !important;
+  color: #1f1b16 !important;
+}
+
+[data-theme="unslop-light"] .imports-table-row:hover:not(.header) {
+  background: #efe9df !important;
+}
+
+/* Legal pages & navigation tabs */
+[data-theme="unslop-light"] .legal-tabs-bar {
+  background: #efe9df !important;
+  border: 1px solid rgba(31, 27, 22, 0.08) !important;
+}
+
+[data-theme="unslop-light"] .legal-tab-btn {
+  color: #5e554a !important;
+}
+
+[data-theme="unslop-light"] .legal-tab-btn.active {
+  background: #ffffff !important;
+  color: #1f1b16 !important;
+  box-shadow: 0 1px 2px rgba(31, 27, 22, 0.06) !important;
+}
+
+/* --------------------------------------------------------------------------
+   2. UNSLOP DARK THEME (Warm Dark Graphite, Zero Harsh Glare, Inset Hairlines)
+   -------------------------------------------------------------------------- */
+[data-theme="unslop-dark"] body {
+  background-color: #161513 !important;
+  color: #efe9de !important;
+}
+
+/* App loader & shell */
+[data-theme="unslop-dark"] .app-page-loader {
+  background: #161513 !important;
+  color: #efe9de !important;
+}
+
+[data-theme="unslop-dark"] .loader-status-text {
+  color: #aaa398 !important;
+}
+
+[data-theme="unslop-dark"] .loader-spinner-ring {
+  border-color: rgba(239, 233, 222, 0.12) !important;
+  border-top-color: #2dd4bf !important;
+}
+
+/* Frosted tactile navigation bar */
+[data-theme="unslop-dark"] .navbar {
+  background-color: rgba(18, 17, 15, 0.92) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid rgba(239, 233, 222, 0.08) !important;
+}
+
+[data-theme="unslop-dark"] .brand-title {
+  color: #efe9de !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="unslop-dark"] .brand-icon rect {
+  fill: #efe9de !important;
+}
+
+[data-theme="unslop-dark"] .brand-icon path {
+  stroke: #161513 !important;
+}
+
+/* Live pulse status dot - calibrated phosphor dot */
+[data-theme="unslop-dark"] .avatar-status-dot {
+  background-color: #4cc38a !important;
+  box-shadow: 0 0 0 2px #12110f, 0 0 0 3px rgba(76, 195, 138, 0.25) !important;
+  animation: none !important;
+}
+
+/* Cards & containers in Warm Dark Graphite */
+[data-theme="unslop-dark"] .card,
+[data-theme="unslop-dark"] .kpi-card,
+[data-theme="unslop-dark"] .fun-facts-card,
+[data-theme="unslop-dark"] .hourly-chart-card,
+[data-theme="unslop-dark"] .notes-calendar-card,
+[data-theme="unslop-dark"] .notes-card,
+[data-theme="unslop-dark"] .history-table-container,
+[data-theme="unslop-dark"] .reui-login-card,
+[data-theme="unslop-dark"] .auth-showcase-inner,
+[data-theme="unslop-dark"] .onboarding-card,
+[data-theme="unslop-dark"] .settings-card,
+[data-theme="unslop-dark"] .terms-card,
+[data-theme="unslop-dark"] .terms-table-of-contents,
+[data-theme="unslop-dark"] .modal-card {
+  background: #1c1a18 !important;
+  border: 1px solid rgba(239, 233, 222, 0.08) !important;
+  border-radius: 14px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  color: #efe9de !important;
+}
+
+/* Floating popovers */
+[data-theme="unslop-dark"] .user-menu-popover,
+[data-theme="unslop-dark"] .date-range-popover {
+  background: #1c1a18 !important;
+  border: 1px solid rgba(239, 233, 222, 0.08) !important;
+  border-radius: 12px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 16px 40px rgba(0, 0, 0, 0.55) !important;
+  color: #efe9de !important;
+}
+
+/* User Menu & Dropdown */
+[data-theme="unslop-dark"] .menu-user-name {
+  color: #efe9de !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="unslop-dark"] .menu-user-email {
+  color: #8a847a !important;
+}
+
+[data-theme="unslop-dark"] .menu-divider {
+  border-bottom: 1px solid rgba(239, 233, 222, 0.08) !important;
+}
+
+[data-theme="unslop-dark"] .menu-action-item {
+  color: #efe9de !important;
+  border-radius: 8px !important;
+}
+
+[data-theme="unslop-dark"] .menu-action-item svg {
+  color: #8a847a !important;
+}
+
+[data-theme="unslop-dark"] .menu-action-item:hover {
+  background: #262421 !important;
+  color: #efe9de !important;
+}
+
+[data-theme="unslop-dark"] .menu-action-item:hover svg {
+  color: #efe9de !important;
+}
+
+[data-theme="unslop-dark"] .menu-action-item.logout {
+  color: #e5484d !important;
+}
+
+[data-theme="unslop-dark"] .menu-action-item.logout svg {
+  color: #e5484d !important;
+}
+
+[data-theme="unslop-dark"] .menu-action-item.logout:hover {
+  background: rgba(229, 72, 77, 0.12) !important;
+}
+
+/* Custom Theme Select Dropdown in Warm Graphite */
+[data-theme="unslop-dark"] .theme-select-dropdown {
+  background: #262421 !important;
+  border: 1px solid rgba(239, 233, 222, 0.12) !important;
+  color: #efe9de !important;
+  border-radius: 8px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  font-weight: 500 !important;
+  padding: 6px 28px 6px 12px !important;
+}
+
+[data-theme="unslop-dark"] .theme-select-dropdown:hover {
+  background: #2c2925 !important;
+  border-color: rgba(239, 233, 222, 0.22) !important;
+}
+
+[data-theme="unslop-dark"] .theme-select-dropdown:focus {
+  border-color: #2dd4bf !important;
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.25) !important;
+  outline: none !important;
+}
+
+[data-theme="unslop-dark"] .theme-dropdown-arrow {
+  color: #aaa398 !important;
+}
+
+/* Dashboard Toolbar & Period Selector */
+[data-theme="unslop-dark"] .preset-btn {
+  background: transparent !important;
+  color: #aaa398 !important;
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+}
+
+[data-theme="unslop-dark"] .preset-btn:hover {
+  background: #262421 !important;
+  color: #efe9de !important;
+}
+
+[data-theme="unslop-dark"] .preset-btn.active {
+  background: #efe9de !important;
+  color: #161513 !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35) !important;
+}
+
+[data-theme="unslop-dark"] .date-range-trigger {
+  background: #1c1a18 !important;
+  border: 1px solid rgba(239, 233, 222, 0.12) !important;
+  border-radius: 8px !important;
+  color: #efe9de !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-theme="unslop-dark"] .date-range-trigger:hover {
+  background: #262421 !important;
+  border-color: rgba(239, 233, 222, 0.22) !important;
+}
+
+/* Dual-Month Calendar Popover */
+[data-theme="unslop-dark"] .popover-presets {
+  background: #12110f !important;
+  border-right: 1px solid rgba(239, 233, 222, 0.08) !important;
+}
+
+[data-theme="unslop-dark"] .month-title {
+  color: #efe9de !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="unslop-dark"] .cal-weekday {
+  color: #8a847a !important;
+  font-weight: 500 !important;
+}
+
+[data-theme="unslop-dark"] .cal-nav-btn {
+  background: #1c1a18 !important;
+  border: 1px solid rgba(239, 233, 222, 0.12) !important;
+  color: #aaa398 !important;
+  border-radius: 6px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-theme="unslop-dark"] .cal-nav-btn:hover {
+  background: #262421 !important;
+  color: #efe9de !important;
+}
+
+[data-theme="unslop-dark"] .cal-day-cell {
+  color: #aaa398 !important;
+  border-radius: 6px !important;
+}
+
+[data-theme="unslop-dark"] .cal-day-cell:hover:not(.is-endpoint) {
+  background: #262421 !important;
+  color: #efe9de !important;
+}
+
+[data-theme="unslop-dark"] .cal-day-cell.is-in-range {
+  background: #262421 !important;
+  color: #efe9de !important;
+}
+
+[data-theme="unslop-dark"] .cal-day-cell.is-endpoint {
+  background: #efe9de !important;
+  color: #161513 !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="unslop-dark"] .popover-actions {
+  border-top: 1px solid rgba(239, 233, 222, 0.08) !important;
+  background: #1c1a18 !important;
+}
+
+/* Fun Facts Bar - Clean tactile monochrome badges, NO rainbow hue gradients */
+[data-theme="unslop-dark"] .fun-facts-card {
+  background: #191816 !important;
+  border: 1px solid rgba(239, 233, 222, 0.08) !important;
+}
+
+[data-theme="unslop-dark"] .fun-fact-icon {
+  background: #262421 !important;
+  border: 1px solid rgba(239, 233, 222, 0.08) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-theme="unslop-dark"] .fun-badge-amber { background: #262421 !important; }
+[data-theme="unslop-dark"] .fun-badge-rose { background: #262421 !important; }
+[data-theme="unslop-dark"] .fun-badge-emerald { background: #262421 !important; }
+[data-theme="unslop-dark"] .fun-badge-slate { background: #262421 !important; }
+[data-theme="unslop-dark"] .fun-badge-violet { background: #262421 !important; }
+
+[data-theme="unslop-dark"] .fun-badge-amber svg { color: #f59e0b !important; }
+[data-theme="unslop-dark"] .fun-badge-rose svg { color: #fb7185 !important; }
+[data-theme="unslop-dark"] .fun-badge-emerald svg { color: #2dd4bf !important; }
+[data-theme="unslop-dark"] .fun-badge-slate svg { color: #94a3b8 !important; }
+[data-theme="unslop-dark"] .fun-badge-violet svg { color: #a78bfa !important; }
+
+[data-theme="unslop-dark"] .fun-fact-tag {
+  color: #8a847a !important;
+}
+
+[data-theme="unslop-dark"] .fun-fact-value {
+  color: #efe9de !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="unslop-dark"] .fun-fact-meta {
+  color: #aaa398 !important;
+}
+
+/* Telemetry KPI Cards - Phosphor precision, NO blue gradients */
+[data-theme="unslop-dark"] .kpi-card {
+  background: #1c1a18 !important;
+  border: 1px solid rgba(239, 233, 222, 0.08) !important;
+}
+
+[data-theme="unslop-dark"] .kpi-icon-badge,
+[data-theme="unslop-dark"] .kpi-badge-black,
+[data-theme="unslop-dark"] .kpi-badge-blue {
+  background: #262421 !important;
+  border: 1px solid rgba(239, 233, 222, 0.08) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  color: #efe9de !important;
+}
+
+[data-theme="unslop-dark"] .kpi-title,
+[data-theme="unslop-dark"] .kpi-subhead {
+  color: #aaa398 !important;
+  font-weight: 500 !important;
+}
+
+[data-theme="unslop-dark"] .kpi-total-cases-val,
+[data-theme="unslop-dark"] .kpi-avg-day-val,
+[data-theme="unslop-dark"] .kpi-avg-hour-val,
+[data-theme="unslop-dark"] .kpi-velocity-val {
+  color: #efe9de !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+}
+
+[data-theme="unslop-dark"] .kpi-unit {
+  color: #8a847a !important;
+}
+
+[data-theme="unslop-dark"] .kpi-delta-pill,
+[data-theme="unslop-dark"] .stat-indicator-pill {
+  background: #262421 !important;
+  border: 1px solid rgba(239, 233, 222, 0.08) !important;
+  color: #aaa398 !important;
+}
+
+[data-theme="unslop-dark"] .stat-indicator-pill.positive,
+[data-theme="unslop-dark"] .kpi-delta-positive {
+  background: rgba(76, 195, 138, 0.12) !important;
+  border-color: rgba(76, 195, 138, 0.22) !important;
+  color: #4cc38a !important;
+}
+
+[data-theme="unslop-dark"] .stat-indicator-pill.negative,
+[data-theme="unslop-dark"] .kpi-delta-negative {
+  background: rgba(229, 72, 77, 0.12) !important;
+  border-color: rgba(229, 72, 77, 0.22) !important;
+  color: #e5484d !important;
+}
+
+/* Hourly Productivity Line Chart (Moment 1) - Phosphor Instrument Line */
+[data-theme="unslop-dark"] .chart-grid-line {
+  stroke: rgba(239, 233, 222, 0.05) !important;
+  stroke-dasharray: 2 3 !important;
+}
+
+[data-theme="unslop-dark"] .chart-axis-line {
+  stroke: rgba(239, 233, 222, 0.1) !important;
+}
+
+[data-theme="unslop-dark"] .chart-axis-text {
+  fill: #8a847a !important;
+  font-size: 11px !important;
+}
+
+[data-theme="unslop-dark"] .chart-line-path {
+  stroke: #2dd4bf !important;
+  stroke-width: 2.5px !important;
+}
+
+[data-theme="unslop-dark"] .chart-node-circle {
+  fill: #1c1a18 !important;
+  stroke: #2dd4bf !important;
+  stroke-width: 2px !important;
+}
+
+[data-theme="unslop-dark"] .chart-node-circle:hover {
+  fill: #2dd4bf !important;
+  stroke: #12110f !important;
+  stroke-width: 2px !important;
+}
+
+[data-theme="unslop-dark"] #hourly-area-gradient-single stop:first-child {
+  stop-color: #2dd4bf !important;
+  stop-opacity: 0.16 !important;
+}
+
+[data-theme="unslop-dark"] #hourly-area-gradient-single stop:last-child {
+  stop-color: #2dd4bf !important;
+  stop-opacity: 0.0 !important;
+}
+
+/* High-contrast floating telemetry tooltip */
+[data-theme="unslop-dark"] .hourly-chart-tooltip,
+[data-theme="unslop-dark"] .chart-tooltip {
+  background: #262421 !important;
+  border: 1px solid rgba(239, 233, 222, 0.12) !important;
+  border-radius: 8px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 30px rgba(0, 0, 0, 0.6) !important;
+  color: #efe9de !important;
+}
+
+[data-theme="unslop-dark"] .chart-tooltip-header {
+  color: #aaa398 !important;
+  border-bottom: 1px solid rgba(239, 233, 222, 0.08) !important;
+}
+
+[data-theme="unslop-dark"] .tooltip-stat-label {
+  color: #8a847a !important;
+}
+
+[data-theme="unslop-dark"] .tooltip-stat-val {
+  color: #efe9de !important;
+}
+
+/* Daily Cases Bar Chart */
+[data-theme="unslop-dark"] .daily-bar-rect {
+  fill: #3d3832 !important;
+  transition: fill 140ms ease !important;
+}
+
+[data-theme="unslop-dark"] .daily-bar-rect:hover {
+  fill: #2dd4bf !important;
+}
+
+[data-theme="unslop-dark"] .daily-bar-rect.is-selected {
+  fill: #2dd4bf !important;
+}
+
+/* Daily Notes Feature & Modal (Moment 3) - Warm Amber Clinical Bar */
+[data-theme="unslop-dark"] .notes-card {
+  border-left: 4px solid #f59e0b !important;
+}
+
+[data-theme="unslop-dark"] .notes-content-box {
+  background: #191816 !important;
+  border: 1px solid rgba(239, 233, 222, 0.08) !important;
+  border-radius: 10px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+[data-theme="unslop-dark"] .notes-text-display {
+  color: #efe9de !important;
+  line-height: 1.6 !important;
+}
+
+[data-theme="unslop-dark"] .notes-meta-footer {
+  color: #8a847a !important;
+  border-top: 1px solid rgba(239, 233, 222, 0.08) !important;
+}
+
+[data-theme="unslop-dark"] .notes-badge-tag {
+  color: #f59e0b !important;
+}
+
+[data-theme="unslop-dark"] .notes-cal-day-cell.has-note::after {
+  background-color: #f59e0b !important;
+}
+
+/* Buttons in Warm Dark Graphite */
+[data-theme="unslop-dark"] .btn-primary,
+[data-theme="unslop-dark"] button.btn-primary,
+[data-theme="unslop-dark"] .btn-full-continue {
+  background: #efe9de !important;
+  color: #161513 !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+  font-weight: 500 !important;
+}
+
+[data-theme="unslop-dark"] .btn-primary:hover,
+[data-theme="unslop-dark"] button.btn-primary:hover,
+[data-theme="unslop-dark"] .btn-full-continue:hover {
+  background: #fdfbf7 !important;
+}
+
+[data-theme="unslop-dark"] .btn-secondary,
+[data-theme="unslop-dark"] button.btn-secondary {
+  background: #1c1a18 !important;
+  border: 1px solid rgba(239, 233, 222, 0.12) !important;
+  color: #efe9de !important;
+  border-radius: 8px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  font-weight: 500 !important;
+}
+
+[data-theme="unslop-dark"] .btn-secondary:hover,
+[data-theme="unslop-dark"] button.btn-secondary:hover {
+  background: #262421 !important;
+  border-color: rgba(239, 233, 222, 0.22) !important;
+}
+
+/* Inputs, textareas, and select elements */
+[data-theme="unslop-dark"] input[type="text"],
+[data-theme="unslop-dark"] select,
+[data-theme="unslop-dark"] textarea,
+[data-theme="unslop-dark"] .form-select,
+[data-theme="unslop-dark"] .form-textarea {
+  background: #262421 !important;
+  border: 1px solid rgba(239, 233, 222, 0.12) !important;
+  border-radius: 8px !important;
+  color: #efe9de !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+[data-theme="unslop-dark"] input[type="text"]:focus,
+[data-theme="unslop-dark"] select:focus,
+[data-theme="unslop-dark"] textarea:focus,
+[data-theme="unslop-dark"] .form-select:focus,
+[data-theme="unslop-dark"] .form-textarea:focus {
+  border-color: #2dd4bf !important;
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.25) !important;
+  outline: none !important;
+}
+
+/* History table */
+[data-theme="unslop-dark"] .imports-table-row.header {
+  border-bottom: 1px solid rgba(239, 233, 222, 0.08) !important;
+  color: #8a847a !important;
+}
+
+[data-theme="unslop-dark"] .imports-table-row {
+  border-bottom: 1px solid rgba(239, 233, 222, 0.05) !important;
+  color: #efe9de !important;
+}
+
+[data-theme="unslop-dark"] .imports-table-row:hover:not(.header) {
+  background: #262421 !important;
+}
+
+/* Legal pages & navigation tabs */
+[data-theme="unslop-dark"] .legal-tabs-bar {
+  background: #262421 !important;
+  border: 1px solid rgba(239, 233, 222, 0.08) !important;
+}
+
+[data-theme="unslop-dark"] .legal-tab-btn {
+  color: #aaa398 !important;
+}
+
+[data-theme="unslop-dark"] .legal-tab-btn.active {
+  background: #1c1a18 !important;
+  color: #efe9de !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+
+/* Auth showcase, toggle button & empty states in Unslop Light */
+[data-theme="unslop-light"] .auth-feature-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(31, 27, 22, 0.08) !important;
+}
+
+[data-theme="unslop-light"] .auth-feature-icon-box {
+  background: #efe9df !important;
+  border: 1px solid rgba(31, 27, 22, 0.08) !important;
+  color: #1f1b16 !important;
+}
+
+[data-theme="unslop-light"] .auth-trust-pill {
+  background: #efe9df !important;
+  border: 1px solid rgba(31, 27, 22, 0.08) !important;
+  color: #5e554a !important;
+}
+
+[data-theme="unslop-light"] .auth-theme-toggle-btn {
+  background: #efe9df !important;
+  border: 1px solid rgba(31, 27, 22, 0.12) !important;
+  color: #1f1b16 !important;
+}
+
+[data-theme="unslop-light"] .auth-theme-toggle-btn:hover {
+  background: #fdfbf7 !important;
+  border-color: rgba(31, 27, 22, 0.22) !important;
+}
+
+[data-theme="unslop-light"] .auth-eyebrow {
+  color: #0f766e !important;
+}
+
+[data-theme="unslop-light"] .empty-record-space-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(31, 27, 22, 0.08) !important;
+}
+
+/* Auth showcase, toggle button & empty states in Unslop Dark */
+[data-theme="unslop-dark"] .auth-feature-card {
+  background: #1c1a18 !important;
+  border: 1px solid rgba(239, 233, 222, 0.08) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-theme="unslop-dark"] .auth-feature-icon-box {
+  background: #262421 !important;
+  border: 1px solid rgba(239, 233, 222, 0.08) !important;
+  color: #efe9de !important;
+}
+
+[data-theme="unslop-dark"] .auth-trust-pill {
+  background: #262421 !important;
+  border: 1px solid rgba(239, 233, 222, 0.08) !important;
+  color: #aaa398 !important;
+}
+
+[data-theme="unslop-dark"] .auth-theme-toggle-btn {
+  background: #262421 !important;
+  border: 1px solid rgba(239, 233, 222, 0.12) !important;
+  color: #efe9de !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-theme="unslop-dark"] .auth-theme-toggle-btn:hover {
+  background: #2c2925 !important;
+  border-color: rgba(239, 233, 222, 0.22) !important;
+}
+
+[data-theme="unslop-dark"] .auth-eyebrow {
+  color: #2dd4bf !important;
+}
+
+[data-theme="unslop-dark"] .empty-record-space-card {
+  background: #1c1a18 !important;
+  border: 1px solid rgba(239, 233, 222, 0.08) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
 }
