@@ -8,34 +8,41 @@ import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 const driveJsCode = fs.readFileSync('public/drive.js', 'utf8');
 
 // Mock a lightweight browser environment
+function createDomNode(tag = '') {
+  return {
+    tagName: tag.toUpperCase(),
+    classList: {
+      classes: new Set(),
+      add(c) { this.classes.add(c); },
+      remove(c) { this.classes.delete(c); },
+      contains(c) { return this.classes.has(c); },
+      toggle(c, force) {
+        if (force === undefined) {
+          if (this.classes.has(c)) { this.classes.delete(c); return false; }
+          this.classes.add(c); return true;
+        }
+        if (force) this.classes.add(c); else this.classes.delete(c);
+        return force;
+      }
+    },
+    style: {},
+    textContent: '',
+    innerHTML: '',
+    dataset: {},
+    children: [],
+    replaceChildren(...nodes) { this.children = [...nodes]; },
+    append(...nodes) { this.children.push(...nodes); },
+    setAttribute() {},
+    removeAttribute() {}
+  };
+}
+
 const domElements = new Map();
 function mockElement(id) {
   if (!domElements.has(id)) {
-    domElements.set(id, {
-      id,
-      classList: {
-        classes: new Set(),
-        add(c) { this.classes.add(c); },
-        remove(c) { this.classes.delete(c); },
-        contains(c) { return this.classes.has(c); },
-        toggle(c, force) {
-          if (force === undefined) {
-            if (this.classes.has(c)) { this.classes.delete(c); return false; }
-            this.classes.add(c); return true;
-          }
-          if (force) this.classes.add(c); else this.classes.delete(c);
-          return force;
-        }
-      },
-      style: {},
-      textContent: '',
-      innerHTML: '',
-      dataset: {},
-      replaceChildren() {},
-      append() {},
-      setAttribute() {},
-      removeAttribute() {}
-    });
+    const el = createDomNode();
+    el.id = id;
+    domElements.set(id, el);
   }
   return domElements.get(id);
 }
@@ -61,8 +68,8 @@ const sandbox = {
     querySelector: (sel) => mockElement(sel.replace(/^[.#]/, '')),
     querySelectorAll: () => [],
     addEventListener() {},
-    createElement: (tag) => mockElement(tag),
-    createElementNS: (ns, tag) => mockElement(tag)
+    createElement: (tag) => createDomNode(tag),
+    createElementNS: (ns, tag) => createDomNode(tag)
   },
   window: {},
   location: { href: '' },
@@ -162,11 +169,34 @@ test('computeMetrics accurately sums cases, distinct days, hourly averages, and 
   assert.equal(metrics.totalCases, 597);
   assert.equal(metrics.avgCasesPerDay, 298.5);
   assert.equal(metrics.totalPoints, 5074.5);
+  assert.equal(metrics.cases2D, 597);
+  assert.equal(metrics.cases3D, 0);
+  assert.equal(metrics.expectedEarnings, 985.05);
   assert.equal(metrics.reportCount, 2);
   // Report 1: 243 / 8 = 30.375
   // Report 2: 354 / 9 = 39.333333333333336
   // Avg pace: (30.375 + 39.3333) / 2 = 34.854...
   assert.ok(Math.abs(metrics.avgCasesPerHour - 34.854) < 0.01);
+});
+
+test('computeMetrics accurately calculates expected earnings for 2D (1.65 MAD) and 3D (2.75 MAD) validation cases', () => {
+  const reports = [
+    {
+      date: '2026-10-30',
+      casesFinished: 200,
+      individualScore: 1700,
+      details: [
+        { hour: 7, finished: 120, taskType: 'Clinical | 2D Validation' },
+        { hour: 8, finished: 80, taskType: 'Clinical | 3D Validation' }
+      ]
+    }
+  ];
+
+  const metrics = sandbox.computeMetrics(reports);
+  assert.equal(metrics.cases2D, 120);
+  assert.equal(metrics.cases3D, 80);
+  // 120 * 1.65 = 198.00 MAD, 80 * 2.75 = 220.00 MAD => 418.00 MAD
+  assert.equal(metrics.expectedEarnings, 418.00);
 });
 
 test('detectDuplicateReports identifies duplicate reports for the same date', () => {
@@ -340,6 +370,11 @@ test('Daybook modular architecture exports modules with clear separation of conc
   assert.equal(typeof Daybook.Charts.renderDailyCasesBarChart, 'function');
   assert.equal(typeof Daybook.Charts.renderHourlyProductivityLineChart, 'function');
 
+  // Module 4b: Notes
+  assert.equal(typeof Daybook.Notes.renderShiftNotesSection, 'function');
+  assert.equal(typeof Daybook.Notes.openNotesModal, 'function');
+  assert.equal(typeof Daybook.Notes.initNotesModal, 'function');
+
   // Module 5: FunFacts
   assert.equal(typeof Daybook.FunFacts.renderProductivityFunFacts, 'function');
   assert.equal(typeof Daybook.FunFacts.initFunFactsCollapse, 'function');
@@ -355,6 +390,85 @@ test('Daybook modular architecture exports modules with clear separation of conc
   // Module 8: App
   assert.equal(typeof Daybook.App.filterAndRenderDashboard, 'function');
   assert.equal(typeof Daybook.App.loadReports, 'function');
+});
+
+test('renderShiftNotesSection / renderDailyNotesSection correctly displays notes when available and hides when absent', () => {
+  const Notes = sandbox.window.Daybook.Notes;
+  const card = domElements.get('notes-card') || domElements.get('shift-notes-card');
+  const dateBadge = domElements.get('notes-card-date-badge');
+  const editLabel = domElements.get('notes-card-edit-label');
+  const content = domElements.get('notes-card-content');
+
+  assert.equal(typeof Notes.renderDailyNotesSection, 'function');
+  assert.equal(typeof Notes.renderShiftNotesSection, 'function');
+
+  // Set sample note in memory
+  Notes.userNotes = {
+    '2026-10-29': 'Shift ran smoothly with high throughput. Handover clear.'
+  };
+
+  // Case 1: Date with an existing note -> visible
+  Notes.renderDailyNotesSection('2026-10-29');
+  assert.equal(card.classList.contains('hidden'), false);
+  assert.ok(dateBadge.textContent.includes('2026'));
+  assert.equal(editLabel.textContent, 'Edit Note');
+  assert.ok(content.children.length > 0);
+  assert.equal(content.children[0].className, 'notes-content-box');
+  assert.ok(content.children[0].children[0].textContent.includes('high throughput'));
+
+  // Case 2: Date without a note -> hidden
+  Notes.renderDailyNotesSection('2026-10-28');
+  assert.equal(card.classList.contains('hidden'), true);
+  assert.equal(content.children.length, 0);
+
+  // Case 3: No date available (null) -> hidden
+  Notes.renderDailyNotesSection(null);
+  assert.equal(card.classList.contains('hidden'), true);
+  assert.equal(content.children.length, 0);
+});
+
+test('renderNotesModalCalendar enables only dates with reports and highlights notes and selections', () => {
+  const Notes = sandbox.window.Daybook.Notes;
+  const App = sandbox.window.Daybook.App;
+
+  // Setup report dates
+  App.rawReportsData = [
+    { date: '2026-10-29', casesFinished: 295 },
+    { date: '2026-10-31', casesFinished: 352 }
+  ];
+
+  Notes.userNotes = {
+    '2026-10-29': 'October 29 note'
+  };
+
+  // Select 2026-10-31
+  Notes.selectNotesModalDate('2026-10-31');
+
+  const hiddenInput = domElements.get('notes-date-input');
+  assert.equal(hiddenInput.value, '2026-10-31');
+
+  const chip = domElements.get('notes-selected-date-text');
+  assert.ok(chip.textContent.includes('31'));
+  assert.ok(chip.textContent.includes('Oct'));
+
+  const grid = domElements.get('notes-cal-days-grid');
+  assert.ok(grid.children.length === 42);
+
+  const cell31 = grid.children.find(c => c.dataset?.date === '2026-10-31');
+  assert.ok(cell31, 'Cell for 2026-10-31 should exist');
+  assert.ok(cell31.classList.contains('is-enabled'));
+  assert.ok(cell31.classList.contains('is-selected'));
+
+  const cell29 = grid.children.find(c => c.dataset?.date === '2026-10-29');
+  assert.ok(cell29, 'Cell for 2026-10-29 should exist');
+  assert.ok(cell29.classList.contains('is-enabled'));
+  assert.ok(!cell29.classList.contains('is-selected'));
+  assert.ok(cell29.children.some(ch => ch.className === 'cal-note-dot'), 'Should have amber note dot indicator');
+
+  const cell30 = grid.children.find(c => c.dataset?.date === '2026-10-30');
+  assert.ok(cell30, 'Cell for 2026-10-30 should exist');
+  assert.ok(cell30.classList.contains('is-disabled'));
+  assert.equal(cell30.disabled, true);
 });
 
 test('buildReportPdf generates a valid PDF document embedding report graphs and KPI metrics', async () => {

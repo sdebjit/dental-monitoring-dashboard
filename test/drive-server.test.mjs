@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createDriveServer } from '../src/drive-server.mjs';
+import { MemoryDriveStore } from '../src/drive-store.mjs';
 
 test('shared server protects user and scheduled routes, and starts OAuth with state and PKCE', async () => {
   const saved = [];
@@ -28,7 +29,8 @@ test('shared server protects user and scheduled routes, and starts OAuth with st
     assert.equal(target.searchParams.get('code_challenge_method'), 'S256');
     assert.ok(target.searchParams.get('scope').includes('profile'));
   assert.ok(target.searchParams.get('scope').includes('https://www.googleapis.com/auth/drive'));
-    assert.equal(saved[0].state, target.searchParams.get('state'));
+    assert.equal(target.searchParams.get('prompt'), 'select_account consent');
+  assert.equal(saved[0].state, target.searchParams.get('state'));
     assert.ok(saved[0].verifier);
   assert.ok(login.headers['set-cookie'].includes('HttpOnly'));
 });
@@ -349,5 +351,169 @@ test('api/profile updates user name and api/onboarded persists custom name', asy
   assert.equal(resPrivacy.status, 200);
   assert.ok(resPrivacy.payload.includes('Google API Services User Data Policy'));
   assert.ok(resPrivacy.payload.includes('Limited Use'));
+});
+
+test('api/notes routes handle GET, POST and DELETE with date validation', async () => {
+  const notesDb = { '2026-10-29': 'Existing note' };
+  const store = {
+    async session(token) {
+      return token === 'user-token' ? { userId: 'user-1', csrf: 'csrf-1' } : null;
+    },
+    async getNotes(userId) {
+      assert.equal(userId, 'user-1');
+      return { ...notesDb };
+    },
+    async saveNote(userId, date, text) {
+      assert.equal(userId, 'user-1');
+      if (!text) delete notesDb[date];
+      else notesDb[date] = text;
+      return { ...notesDb };
+    },
+    async deleteNote(userId, date) {
+      assert.equal(userId, 'user-1');
+      delete notesDb[date];
+      return { ...notesDb };
+    }
+  };
+
+  const { server } = createDriveServer({
+    env: { DAYBOOK_BASE_URL: 'http://localhost', GOOGLE_CLIENT_ID: 'client-id', GOOGLE_CLIENT_SECRET: 'secret', DAYBOOK_SCHEDULER_SECRET: 'scheduler-secret' },
+    store
+  });
+
+  // 1. GET /api/notes
+  const resGet = { headers: {}, status: 0, payload: '', setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s) { this.status = s; }, end(v = '') { this.payload = v; } };
+  await server.listeners('request')[0]({
+    method: 'GET',
+    url: '/api/notes',
+    headers: { cookie: 'daybook_session=user-token' }
+  }, resGet);
+  assert.equal(resGet.status, 200);
+  const getJson = JSON.parse(resGet.payload);
+  assert.equal(getJson.notes['2026-10-29'], 'Existing note');
+
+  // 2. POST /api/notes with valid date
+  const resPost = { headers: {}, status: 0, payload: '', setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s) { this.status = s; }, end(v = '') { this.payload = v; } };
+  const reqPost = {
+    method: 'POST',
+    url: '/api/notes',
+    headers: { cookie: 'daybook_session=user-token', origin: 'http://localhost', 'x-daybook-csrf': 'csrf-1', 'content-type': 'application/json' },
+    async *[Symbol.asyncIterator]() { yield Buffer.from(JSON.stringify({ date: '2026-10-30', text: 'Dr. Jane shift completed early' })); }
+  };
+  await server.listeners('request')[0](reqPost, resPost);
+  assert.equal(resPost.status, 200);
+  const postJson = JSON.parse(resPost.payload);
+  assert.equal(postJson.notes['2026-10-30'], 'Dr. Jane shift completed early');
+
+  // 3. POST /api/notes with invalid date
+  const resInvalid = { headers: {}, status: 0, payload: '', setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s) { this.status = s; }, end(v = '') { this.payload = v; } };
+  const reqInvalid = {
+    method: 'POST',
+    url: '/api/notes',
+    headers: { cookie: 'daybook_session=user-token', origin: 'http://localhost', 'x-daybook-csrf': 'csrf-1', 'content-type': 'application/json' },
+    async *[Symbol.asyncIterator]() { yield Buffer.from(JSON.stringify({ date: 'invalid-date', text: 'Some note' })); }
+  };
+  await server.listeners('request')[0](reqInvalid, resInvalid);
+  assert.equal(resInvalid.status, 400);
+
+  // 4. DELETE /api/notes
+  const resDel = { headers: {}, status: 0, payload: '', setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s) { this.status = s; }, end(v = '') { this.payload = v; } };
+  const reqDel = {
+    method: 'DELETE',
+    url: '/api/notes',
+    headers: { cookie: 'daybook_session=user-token', origin: 'http://localhost', 'x-daybook-csrf': 'csrf-1', 'content-type': 'application/json' },
+    async *[Symbol.asyncIterator]() { yield Buffer.from(JSON.stringify({ date: '2026-10-30' })); }
+  };
+  await server.listeners('request')[0](reqDel, resDel);
+  assert.equal(resDel.status, 200);
+  const delJson = JSON.parse(resDel.payload);
+  assert.equal(delJson.notes['2026-10-30'], undefined);
+});
+
+test('MemoryDriveStore supports local dev session lifecycle and /me /api/me endpoints', async () => {
+  const store = new MemoryDriveStore();
+  const { server } = createDriveServer({
+    env: {
+      DAYBOOK_BASE_URL: 'http://localhost:8080',
+      LOCAL_DEV: 'true',
+      GOOGLE_CLIENT_ID: 'mock-client-id',
+      GOOGLE_CLIENT_SECRET: 'secret',
+      DAYBOOK_SCHEDULER_SECRET: 'scheduler-secret'
+    },
+    store
+  });
+
+  // 1. Visit /auth/login in mock dev mode -> should create session and set cookies
+  const resLogin = { headers: {}, status: 0, setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s, h = {}) { this.status = s; for (const [k, v] of Object.entries(h)) this.headers[k.toLowerCase()] = v; }, end() {} };
+  await server.listeners('request')[0]({ method: 'GET', url: '/auth/login', headers: {} }, resLogin);
+  assert.equal(resLogin.status, 303);
+  assert.ok(resLogin.headers['set-cookie']);
+
+  // Extract session token from cookie
+  const setCookieHeaders = Array.isArray(resLogin.headers['set-cookie']) ? resLogin.headers['set-cookie'] : [resLogin.headers['set-cookie']];
+  const sessionCookie = setCookieHeaders.find(c => c.includes('daybook_session='));
+  const match = sessionCookie.match(/daybook_session=([^;]+)/);
+  assert.ok(match, 'Session token cookie should be present');
+  const token = match[1];
+
+  // 2. GET /api/me with cookie
+  const resApiMe = { headers: {}, status: 0, payload: '', setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s) { this.status = s; }, end(v = '') { this.payload = v; } };
+  await server.listeners('request')[0]({ method: 'GET', url: '/api/me', headers: { cookie: `daybook_session=${token}` } }, resApiMe);
+  assert.equal(resApiMe.status, 200);
+  const meData = JSON.parse(resApiMe.payload);
+  assert.ok(meData.csrf, 'CSRF token should be returned');
+  assert.equal(meData.user.email, 'mr.debjit.sadhukhan@gmail.com');
+
+  // 3. GET /me alias with cookie
+  const resMe = { headers: {}, status: 0, payload: '', setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s) { this.status = s; }, end(v = '') { this.payload = v; } };
+  await server.listeners('request')[0]({ method: 'GET', url: '/me', headers: { cookie: `daybook_session=${token}` } }, resMe);
+  assert.equal(resMe.status, 200);
+  const meDataAlias = JSON.parse(resMe.payload);
+  assert.equal(meDataAlias.user.email, 'mr.debjit.sadhukhan@gmail.com');
+
+  // 4. Browser GET /auth/login with Accept: text/html -> should show dev account chooser
+  const resChooser = { headers: {}, status: 0, payload: '', setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s) { this.status = s; }, end(v = '') { this.payload = v; } };
+  await server.listeners('request')[0]({ method: 'GET', url: '/auth/login', headers: { accept: 'text/html,application/xhtml+xml' } }, resChooser);
+  assert.equal(resChooser.status, 200);
+  assert.ok(resChooser.payload.includes('Choose an account'));
+  assert.ok(resChooser.payload.includes('mr.debjit.sadhukhan@gmail.com'));
+
+  // 5. GET /auth/login?email=doctor@clinic.com -> should create session for chosen email
+  const resCustom = { headers: {}, status: 0, setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s, h = {}) { this.status = s; for (const [k, v] of Object.entries(h)) this.headers[k.toLowerCase()] = v; }, end() {} };
+  await server.listeners('request')[0]({ method: 'GET', url: '/auth/login?email=doctor@clinic.com', headers: { accept: 'text/html' } }, resCustom);
+  assert.equal(resCustom.status, 303);
+  const customCookies = Array.isArray(resCustom.headers['set-cookie']) ? resCustom.headers['set-cookie'] : [resCustom.headers['set-cookie']];
+  const customSessionCookie = customCookies.find(c => c.includes('daybook_session='));
+  const customToken = customSessionCookie.match(/daybook_session=([^;]+)/)[1];
+
+  const resCustomMe = { headers: {}, status: 0, payload: '', setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s) { this.status = s; }, end(v = '') { this.payload = v; } };
+  await server.listeners('request')[0]({ method: 'GET', url: '/api/me', headers: { cookie: `daybook_session=${customToken}` } }, resCustomMe);
+  assert.equal(resCustomMe.status, 200);
+  const customData = JSON.parse(resCustomMe.payload);
+  assert.equal(customData.user.email, 'doctor@clinic.com');
+});
+
+test('canonical domain enforcement permanently redirects legacy domains to canonical base URL', async () => {
+  const store = new MemoryDriveStore();
+  const { server } = createDriveServer({
+    env: {
+      DAYBOOK_BASE_URL: 'https://dmd.qd.je',
+      GOOGLE_CLIENT_ID: 'mock-client-id',
+      GOOGLE_CLIENT_SECRET: 'secret',
+      DAYBOOK_SCHEDULER_SECRET: 'scheduler-secret'
+    },
+    store
+  });
+
+  // Request arriving from legacy web.app host
+  const resRedirect = { headers: {}, status: 0, setHeader(k, v) { this.headers[k.toLowerCase()] = v; }, writeHead(s, h = {}) { this.status = s; for (const [k, v] of Object.entries(h)) this.headers[k.toLowerCase()] = v; }, end() {} };
+  await server.listeners('request')[0]({
+    method: 'GET',
+    url: '/privacy',
+    headers: { host: 'dental-monitoring-dashboard.web.app' }
+  }, resRedirect);
+
+  assert.equal(resRedirect.status, 301);
+  assert.equal(resRedirect.headers['location'], 'https://dmd.qd.je/privacy');
 });
 

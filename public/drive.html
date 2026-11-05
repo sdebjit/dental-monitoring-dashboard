@@ -74,92 +74,180 @@
       </div>
     </div>
 
-    <!-- ReUI Minimal Centered Login Page -->
-    <section id="signin" class="reui-login-container hidden">
-      <div class="reui-login-card">
-        <!-- Professional Minimalist Logo -->
-        <div class="reui-login-logo" aria-hidden="true">
-          <svg width="44" height="44" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="36" height="36" rx="9" fill="#09090b"/>
-            <path d="M8 18.5H12.5L15.5 11.5L20.5 24.5L23.5 18.5H28" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+    <!-- ReUI Two-Sided Split Auth Layout (Full Width, Fully Responsive) -->
+    <section id="signin" class="reui-auth-split-wrapper hidden">
+      <!-- Left Panel: Product Showcase & Transparency Feature Cards -->
+      <aside class="reui-auth-showcase">
+        <div class="auth-showcase-inner">
+          <!-- Top Header -->
+          <div class="auth-showcase-header">
+            <div class="auth-brand-badge">
+              <div class="brand-icon-sm" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
+                  <rect width="36" height="36" rx="8" fill="#18181b"/>
+                  <path d="M8 18.5H12.5L15.5 11.5L20.5 24.5L23.5 18.5H28" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="brand-text">
+                <span class="brand-title">Dental Monitoring</span>
+                <span class="brand-badge">Pipeline</span>
+              </div>
+            </div>
+            <div class="auth-trust-pill">
+              <span class="trust-dot"></span>
+              <span>Google Cloud &amp; Drive Verified</span>
+            </div>
+          </div>
+
+          <!-- Main Hero Content -->
+          <div class="auth-showcase-body">
+            <div class="auth-showcase-lead">
+              <span class="auth-eyebrow">How it works</span>
+              <h2 class="auth-showcase-title">Track Your Daily Performance with Ease</h2>
+              <p class="auth-showcase-subtitle">Drop your exported PDF reports into Google Drive. We automatically calculate your scores, show your hourly pace, and keep your files organized.</p>
+            </div>
+
+            <!-- 3 Feature Cards (Matching Attached Screenshot) -->
+            <div class="auth-features-stack">
+              <div class="auth-feature-card">
+                <div class="auth-feature-icon-box" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                  </svg>
+                </div>
+                <div class="auth-feature-content">
+                  <h3 class="auth-feature-title">Automatic Report Reading</h3>
+                  <p class="auth-feature-desc">We read your exported daily PDFs to track your completed cases, shift scores, and hourly breakdown automatically.</p>
+                </div>
+              </div>
+
+              <div class="auth-feature-card">
+                <div class="auth-feature-icon-box" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                  </svg>
+                </div>
+                <div class="auth-feature-content">
+                  <h3 class="auth-feature-title">Safe Google Drive Sync</h3>
+                  <p class="auth-feature-desc">Choose a folder in your Google Drive. Once a PDF is imported, we move it to an <code class="code-pill">archive</code> folder so your workspace stays neat.</p>
+                </div>
+              </div>
+
+              <div class="auth-feature-card">
+                <div class="auth-feature-icon-box" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </div>
+                <div class="auth-feature-content">
+                  <h3 class="auth-feature-title">Private &amp; Secure</h3>
+                  <p class="auth-feature-desc">Your data is encrypted and never sold or shared. You stay in full control and can delete all your data anytime in Settings.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Showcase Bottom Trust Footer -->
+          <div class="auth-showcase-footer">
+            <div class="auth-trust-badges">
+              <span class="trust-badge-item">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Encrypted Data
+              </span>
+              <span class="trust-badge-item">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                100% Private
+              </span>
+              <span class="trust-badge-item">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                Files Saved in Drive
+              </span>
+            </div>
+          </div>
         </div>
+      </aside>
 
-        <h1 class="reui-login-title">Log in to Dental Monitoring</h1>
-
-        <!-- Google Sign-In Only -->
-        <div class="reui-login-actions">
-          <a class="reui-btn-google" href="/auth/login">
-            <svg class="google-icon" viewBox="0 0 24 24" width="18" height="18">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+      <!-- Right Panel: Focused Login Section -->
+      <main class="reui-auth-form-side">
+        <!-- Top Utility Header with Theme Toggle -->
+        <div class="auth-form-topbar">
+          <div class="auth-mobile-brand">
+            <div class="brand-icon-xs" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+                <rect width="36" height="36" rx="6" fill="#18181b"/>
+                <path d="M8 18.5H12.5L15.5 11.5L20.5 24.5L23.5 18.5H28" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="brand-title">Dental Monitoring</span>
+          </div>
+          <button id="auth-theme-toggle" class="auth-theme-toggle-btn" type="button" title="Toggle color theme" aria-label="Toggle color theme">
+            <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
             </svg>
-            <span>Continue with Google</span>
-          </a>
+            <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          </button>
         </div>
 
-        <p class="reui-login-footer">
-          By continuing, you agree to our <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>
-        </p>
-      </div>
-
-      <!-- Public App Overview & Disclosure for Unauthenticated Visitors & Reviewers -->
-      <div class="public-app-overview">
-        <div class="public-overview-grid">
-          <div class="public-feature-card">
-            <div class="public-feature-icon" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-                <polyline points="10 9 9 9 8 9"/>
+        <!-- Center Login Container -->
+        <div class="auth-login-core">
+          <div class="reui-login-card">
+            <!-- Professional Minimalist Logo -->
+            <div class="reui-login-logo" aria-hidden="true">
+              <svg width="48" height="48" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="36" height="36" rx="9" fill="#09090b"/>
+                <path d="M8 18.5H12.5L15.5 11.5L20.5 24.5L23.5 18.5H28" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
-            <div class="public-feature-content">
-              <h3>Automated PDF Report Pipeline</h3>
-              <p>Dental Monitoring Dashboard automatically processes exported daily performance PDF reports, extracting shift totals, completed cases, benchmark scores, and hourly details.</p>
-            </div>
-          </div>
 
-          <div class="public-feature-card">
-            <div class="public-feature-icon" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-              </svg>
-            </div>
-            <div class="public-feature-content">
-              <h3>Google Drive Integration &amp; Archiving</h3>
-              <p>Connects to a single, user-designated Google Drive folder to scan new dashboard export PDFs, validate data integrity, and move processed files safely into an <code>archive</code> subfolder.</p>
-            </div>
-          </div>
+            <h1 class="reui-login-title">Log in to Dental Monitoring</h1>
+            <p class="reui-login-subtext">Sign in with Google to view your daily scores, track your progress, and manage your reports.</p>
 
-          <div class="public-feature-card">
-            <div class="public-feature-icon" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            <!-- Google Sign-In Action -->
+            <div class="reui-login-actions">
+              <a class="reui-btn-google" href="/auth/login">
+                <svg class="google-icon" viewBox="0 0 24 24" width="18" height="18">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                <span>Continue with Google</span>
+              </a>
+            </div>
+
+            <!-- Single Sign-On Security Note -->
+            <div class="auth-security-pill">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
+              <span>OAuth 2.0 with PKCE Security</span>
             </div>
-            <div class="public-feature-content">
-              <h3>Strict Security &amp; Data Privacy</h3>
-              <p>OAuth tokens are encrypted with AES-256-GCM. We never sell or share user data. Users maintain full ownership and can revoke access or purge all stored data anytime in Settings.</p>
-            </div>
+
+            <p class="reui-login-footer">
+              By continuing, you agree to our <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>
+            </p>
           </div>
         </div>
 
-        <footer class="public-landing-footer">
-          <span>Dental Monitoring Dashboard</span>
-          <span class="footer-sep" aria-hidden="true">·</span>
-          <a href="/privacy">Privacy Policy</a>
-          <span class="footer-sep" aria-hidden="true">·</span>
-          <a href="/terms">Terms of Service</a>
-          <span class="footer-sep" aria-hidden="true">·</span>
-          <a href="mailto:mr.debjit.sadhukhan@gmail.com">Contact Developer</a>
+        <!-- Bottom Form Footer -->
+        <footer class="auth-form-footer">
+          <div class="auth-form-links">
+            <a href="/privacy">Privacy Policy</a>
+            <span class="footer-sep" aria-hidden="true">·</span>
+            <a href="/terms">Terms of Service</a>
+            <span class="footer-sep" aria-hidden="true">·</span>
+            <a href="mailto:mr.debjit.sadhukhan@gmail.com">Support</a>
+          </div>
+          <span class="auth-form-copy">© 2026 Dental Monitoring Dashboard</span>
         </footer>
-      </div>
+      </main>
     </section>
 
     <!-- Multi-Step ReUI Onboarding Screen (Matches Uploaded Design) -->
@@ -592,6 +680,14 @@
             <span>Export</span>
           </button>
 
+          <button id="dashboard-add-notes-btn" class="btn btn-secondary dashboard-notes-btn" type="button" title="Add notes for a date">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            <span>Add Notes</span>
+          </button>
+
           <!-- Dual Calendar Popover (Matching image 2) -->
           <div id="date-range-popover" class="date-range-popover hidden" role="dialog" aria-modal="true" aria-label="Select date range">
             <div class="popover-layout">
@@ -821,23 +917,50 @@
           </div>
         </div>
 
-        <!-- 4. Total Points -->
+        <!-- 4. Expected Earnings (MAD) & Points -->
         <div class="kpi-card" id="kpi-card-total-points">
           <div class="kpi-header-row">
             <div class="kpi-icon-badge kpi-badge-teal" aria-hidden="true">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                <rect x="2" y="6" width="20" height="12" rx="2"/>
+                <circle cx="12" cy="12" r="2.5"/>
+                <path d="M6 12h.01M18 12h.01"/>
               </svg>
             </div>
             <div class="kpi-titles">
-              <span class="kpi-category">Performance Score</span>
-              <h3 class="kpi-main-title">Total Points Earned</h3>
+              <span class="kpi-category">Estimated Compensation</span>
+              <h3 class="kpi-main-title">Expected Earnings</h3>
+            </div>
+            <div class="kpi-info-tooltip-wrapper">
+              <button type="button" class="kpi-info-btn" id="kpi-earnings-info-btn" aria-label="Earnings calculation details" tabindex="0">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+              </button>
+              <div class="kpi-info-popover" role="tooltip" id="kpi-earnings-popover">
+                <div class="kpi-info-popover-title">Standard Rate Estimation</div>
+                <div class="kpi-info-popover-rates">
+                  <div class="kpi-rate-row">
+                    <span class="kpi-rate-name">2D Validation:</span>
+                    <strong class="kpi-rate-val">1.65 MAD / case</strong>
+                  </div>
+                  <div class="kpi-rate-row">
+                    <span class="kpi-rate-name">3D Validation:</span>
+                    <strong class="kpi-rate-val">2.75 MAD / case</strong>
+                  </div>
+                </div>
+                <p class="kpi-info-popover-note">
+                  This estimate is calculated directly from completed case counts to give you a quick idea of your earnings. It does not factor in quality scores, escalations, or adjustments that affect your final payout.
+                </p>
+              </div>
             </div>
           </div>
-          <div class="kpi-subhead" id="kpi-total-points-subhead">Cumulative performance score across completed cases</div>
+          <div class="kpi-subhead" id="kpi-total-points-subhead">Points earned across period</div>
           <div class="kpi-value-row">
             <span class="kpi-main-val" id="kpi-total-points-val">—</span>
-            <span class="kpi-val-unit" id="kpi-total-points-unit">pts</span>
+            <span class="kpi-val-unit" id="kpi-total-points-unit">MAD</span>
             <span class="kpi-delta hidden" id="kpi-total-points-delta"></span>
           </div>
         </div>
@@ -902,6 +1025,42 @@
         </div>
       </section>
 
+      <!-- Row 4: Daily Notes Section (Under Hourly Line Graph) -->
+      <section id="notes-card" class="card chart-card notes-card hidden">
+        <div class="card-head chart-card-head">
+          <div class="chart-header-info">
+            <div class="chart-title-row">
+              <div class="chart-icon-badge chart-badge-amber" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+              </div>
+              <h3 id="notes-card-title" class="chart-main-title">Notes</h3>
+              <span id="notes-card-date-badge" class="chart-date-badge">—</span>
+            </div>
+            <p id="notes-card-desc" class="card-desc">Additional information, context, or observations about the day.</p>
+          </div>
+          <div class="chart-head-actions">
+            <button id="notes-card-edit-btn" class="btn btn-secondary btn-sm" type="button">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              <span id="notes-card-edit-label">Edit Note</span>
+            </button>
+          </div>
+        </div>
+        <div class="notes-body">
+          <div id="notes-card-content" class="notes-content-view">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </section>
+
       <!-- Minimal Workspace Footer -->
       <footer class="workspace-simple-footer">
         <span class="footer-copy">Dental Monitoring Dashboard · All original files remain preserved in Google Drive</span>
@@ -909,6 +1068,100 @@
         <span class="footer-sep" aria-hidden="true">·</span>
         <a class="link-secondary" href="/privacy">Privacy Policy</a>
       </footer>
+    </div>
+
+    <!-- Add / Edit Note Modal -->
+    <div id="notes-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="notes-modal-title">
+      <div class="modal-card notes-modal-card">
+        <div class="modal-header-with-close">
+          <div class="modal-header-titles">
+            <div class="modal-icon-badge modal-badge-amber" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+            </div>
+            <div>
+              <h3 id="notes-modal-title" class="modal-main-title">Add Note</h3>
+              <p class="modal-desc-sub">Add additional information, context, or observations about the day.</p>
+            </div>
+          </div>
+          <button id="notes-modal-close-btn" class="modal-close-icon-btn" type="button" aria-label="Close modal">✕</button>
+        </div>
+
+        <form id="notes-form" class="notes-form">
+          <div class="form-group notes-date-group">
+            <div class="notes-date-label-row">
+              <label class="form-label" style="margin-bottom:0">Select Date</label>
+              <div id="notes-selected-date-chip" class="notes-selected-chip">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <span id="notes-selected-date-text">Select a date</span>
+              </div>
+            </div>
+
+            <!-- Calendar Date Picker (Only dates with reports are enabled) -->
+            <div class="notes-calendar-card">
+              <div class="notes-cal-nav">
+                <button id="notes-cal-prev-btn" class="notes-cal-nav-btn" type="button" aria-label="Previous month">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"/>
+                  </svg>
+                </button>
+                <span id="notes-cal-month-title" class="notes-cal-month-title">—</span>
+                <button id="notes-cal-next-btn" class="notes-cal-nav-btn" type="button" aria-label="Next month">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="notes-cal-weekdays">
+                <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+              </div>
+              <div id="notes-cal-days-grid" class="notes-cal-days-grid" role="grid" aria-label="Calendar date selection">
+                <!-- Populated dynamically: only dates with reports are enabled -->
+              </div>
+
+              <div class="notes-cal-legend">
+                <span class="legend-item"><span class="legend-swatch swatch-available"></span> Available report</span>
+                <span class="legend-item"><span class="legend-swatch swatch-note"></span> Has note</span>
+                <span class="legend-item"><span class="legend-swatch swatch-disabled"></span> No data</span>
+              </div>
+            </div>
+            <input type="hidden" id="notes-date-input" name="date" required />
+          </div>
+
+          <div class="form-group">
+            <label for="notes-text-input" class="form-label">
+              <span>Notes &amp; Additional Information</span>
+              <span id="notes-char-count" class="label-hint">Multiline text</span>
+            </label>
+            <textarea
+              id="notes-text-input"
+              class="form-textarea"
+              rows="4"
+              placeholder="Add any additional details, context, or observations about this day..."
+              required
+            ></textarea>
+          </div>
+
+          <div class="modal-footer notes-modal-footer">
+            <button id="notes-delete-btn" class="btn btn-outline-danger hidden" type="button">Delete Note</button>
+            <div class="modal-footer-right">
+              <button id="notes-cancel-btn" class="btn btn-secondary" type="button">Cancel</button>
+              <button id="notes-submit-btn" class="btn btn-primary" type="submit">Save Note</button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   </main>
 </body>

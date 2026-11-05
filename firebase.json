@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "dental-monitoring-dashboard",
+    "site": "daybook-ma",
     "public": "public",
     "ignore": [
       "firebase.json",

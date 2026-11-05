@@ -146,6 +146,60 @@ export function parseDashboardItems(items, bytes = Buffer.alloc(0)) {
     throw new Error('Details rows are missing or their finished cases do not match the total.');
   }
 
+  // Parse task counts directly from '# Cases finished' table (Lignes | #)
+  let cases2D = 0;
+  let cases3D = 0;
+  const taskBreakdown = {};
+
+  const totalLineIndex = lines.indexOf(totalLine);
+  if (totalLineIndex > 0) {
+    for (let i = totalLineIndex - 1; i >= 0; i--) {
+      const line = lines[i];
+      if (line.items.some(it => /^lignes$/i.test(it.str) || /cases\s+finished/i.test(it.str))) {
+        break;
+      }
+      const prevLineY = lines[i + 1]?.y ?? line.y;
+      if (Math.abs(line.y - prevLineY) > 40) {
+        break;
+      }
+
+      const numItem = [...line.items].reverse().find(it => amount(it.str) !== null);
+      if (numItem) {
+        const taskName = line.items
+          .filter(it => it !== numItem && amount(it.str) === null)
+          .map(it => it.str)
+          .join(' ')
+          .trim();
+        const count = amount(numItem.str);
+        if (taskName && count !== null) {
+          taskBreakdown[taskName] = (taskBreakdown[taskName] || 0) + count;
+          if (/3d/i.test(taskName)) {
+            cases3D += count;
+          } else if (/2d/i.test(taskName)) {
+            cases2D += count;
+          }
+        }
+      }
+    }
+  }
+
+  // Fallback to hourly details table if # Cases finished table rows were absent
+  if (cases2D === 0 && cases3D === 0 && details.length > 0) {
+    for (const row of details) {
+      const c = Number(row.finished) || 0;
+      const t = String(row.taskType || '');
+      if (/3d/i.test(t)) {
+        cases3D += c;
+      } else {
+        cases2D += c;
+      }
+    }
+  }
+
+  if (cases2D === 0 && cases3D === 0) {
+    cases2D = casesFinished;
+  }
+
   const benchmark = (name) => amount(nearestBelow(items, label(name), { maxX: 120, maxY: 30, numeric: true }));
   const scoreBreakdown = amount(items.find(item => /^\d[\d ]* pts$/.test(item.str))?.str.replace(/ pts$/, ''));
   const refreshLine = lines.find(line => line.items.some(item => item.str === 'Last refresh was'));
@@ -155,6 +209,9 @@ export function parseDashboardItems(items, bytes = Buffer.alloc(0)) {
     operator: nearestBelow(items, label('Operator'), { maxX: 300, maxY: 60 }) || '',
     shift: nearestBelow(items, label('Shift'), { maxX: 300, maxY: 60 }) || '',
     taskType: [...new Set(details.map(row => row.taskType))].join(', '),
+    taskBreakdown,
+    cases2D,
+    cases3D,
     goalScoreIndividual: benchmark('goal_score_individual'),
     shiftScore: benchmark('shift score'), siteScore: benchmark('site score'), globalScore: benchmark('global score'),
     scoreBreakdown, sourceExportedAt: exportedAt, lastRefreshText,
@@ -163,6 +220,8 @@ export function parseDashboardItems(items, bytes = Buffer.alloc(0)) {
     dailyRecord(date, 'Cases finished', casesFinished, 'cases', 'sum'),
     dailyRecord(date, 'Individual score', individualScore, 'pts'),
   ];
+  if (cases2D > 0) records.push(dailyRecord(date, 'Cases 2D finished', cases2D, 'cases'));
+  if (cases3D > 0) records.push(dailyRecord(date, 'Cases 3D finished', cases3D, 'cases'));
   for (const [field, metric] of [['goalScoreIndividual', 'Goal score individual'], ['shiftScore', 'Shift score'], ['siteScore', 'Site score'], ['globalScore', 'Global score'], ['scoreBreakdown', 'Score breakdown']]) {
     if (metadata[field] !== null) records.push(dailyRecord(date, metric, metadata[field], 'pts'));
   }
@@ -171,5 +230,5 @@ export function parseDashboardItems(items, bytes = Buffer.alloc(0)) {
     records.push({ reportDate: date, hour: row.hour, granularity: 'hourly', metric: 'Cases finished', value: row.finished, unit: 'cases', aggregation: 'sum', dimensions });
     records.push({ reportDate: date, hour: row.hour, granularity: 'hourly', metric: 'Details score', value: row.score, unit: 'pts', aggregation: 'sum', dimensions });
   }
-  return { date, casesFinished, individualScore, details, metadata, records, sha256: createHash('sha256').update(bytes).digest('hex') };
+  return { date, casesFinished, individualScore, cases2D, cases3D, taskBreakdown, details, metadata, records, sha256: createHash('sha256').update(bytes).digest('hex') };
 }

@@ -55,7 +55,7 @@ jobs:
             --build-service-account=projects/daybook-ma/serviceAccounts/github-deployer@daybook-ma.iam.gserviceaccount.com \
             --allow-unauthenticated \
             --min-instances 0 \
-            --set-env-vars "DAYBOOK_BASE_URL=https://dental-monitoring-dashboard.web.app,\
+            --set-env-vars "DAYBOOK_BASE_URL=https://dmd.qd.je,\
           FIRESTORE_DATABASE_ID=daybook-db,\
           GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},\
           GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }},\

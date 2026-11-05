@@ -174,7 +174,7 @@ async function api(path, options = {}) {
     ...options,
     headers: {
       ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-      ...(options.method === 'POST' ? { 'X-Daybook-CSRF': csrf } : {}),
+      ...(options.method && options.method !== 'GET' ? { 'X-Daybook-CSRF': csrf } : {}),
       ...(options.headers || {})
     }
   });
@@ -225,6 +225,9 @@ function setSelectButtonState(btn, isSelected) {
 // ============================================================================
 
 let rawReportsData = [];
+let userNotes = {};
+let currentActiveNotesDate = null;
+let isNotesModalInitialized = false;
 let activeDateRange = getPresetRange('billingMonth');
 let pendingDateRange = { ...activeDateRange, preset: 'billingMonth' };
 let calendarViewDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -309,9 +312,10 @@ async function loadReports() {
   let sourceAvailable = true;
 
   try {
-    const [sourceRes, reportsRes] = await Promise.allSettled([
+    const [sourceRes, reportsRes, notesRes] = await Promise.allSettled([
       checkSourceStatus(),
-      api('/api/reports')
+      api('/api/reports'),
+      api('/api/notes')
     ]);
 
     if (sourceRes.status === 'fulfilled') {
@@ -324,6 +328,9 @@ async function loadReports() {
       const friendly = formatUserFriendlyError(err?.message);
       if (friendly) showTopError(friendly.title, friendly.desc, friendly.action?.label, friendly.action?.href);
     }
+    if (notesRes.status === 'fulfilled') {
+      userNotes = notesRes.value?.notes || {};
+    }
   } catch (err) {
     const friendly = formatUserFriendlyError(err.message);
     if (friendly) showTopError(friendly.title, friendly.desc, friendly.action?.label, friendly.action?.href);
@@ -331,12 +338,41 @@ async function loadReports() {
 
   initDateRangePicker();
   initFunFactsCollapse();
+  initEarningsTooltip();
+  initNotesModal();
   filterAndRenderDashboard();
 
   const emptySourceAction = $('empty-state-source-action');
   if (emptySourceAction) {
     emptySourceAction.classList.toggle('hidden', sourceAvailable);
   }
+}
+
+let isEarningsTooltipInitialized = false;
+function initEarningsTooltip() {
+  if (isEarningsTooltipInitialized) return;
+  isEarningsTooltipInitialized = true;
+  const btn = $('kpi-earnings-info-btn');
+  const popover = $('kpi-earnings-popover');
+  if (!btn || !popover) return;
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    popover.classList.toggle('is-visible');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!btn.contains(e.target) && !popover.contains(e.target)) {
+      popover.classList.remove('is-visible');
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && popover.classList.contains('is-visible')) {
+      popover.classList.remove('is-visible');
+      btn.focus();
+    }
+  });
 }
 
 // ============================================================================
@@ -351,6 +387,9 @@ function computeMetrics(reports) {
       avgCasesPerDay: 0,
       avgCasesPerHour: 0,
       totalPoints: 0,
+      cases2D: 0,
+      cases3D: 0,
+      expectedEarnings: 0,
       reportCount: 0
     };
   }
@@ -375,12 +414,72 @@ function computeMetrics(reports) {
   const avgCasesPerHour = hourlyRateSum / reports.length;
   const totalPoints = reports.reduce((sum, r) => sum + (Number(r.individualScore) || 0), 0);
 
+  // 2D & 3D Task Breakdown (prioritizing '# Cases finished' section from PDF)
+  let cases2D = 0;
+  let cases3D = 0;
+  for (const r of reports) {
+    if (r.cases2D !== undefined || r.cases3D !== undefined) {
+      cases2D += (Number(r.cases2D) || 0);
+      cases3D += (Number(r.cases3D) || 0);
+    } else if (r.taskBreakdown && typeof r.taskBreakdown === 'object' && Object.keys(r.taskBreakdown).length > 0) {
+      for (const [taskName, count] of Object.entries(r.taskBreakdown)) {
+        const c = Number(count) || 0;
+        if (/3d/i.test(taskName)) {
+          cases3D += c;
+        } else {
+          cases2D += c;
+        }
+      }
+    } else if (r.metadata?.cases2D !== undefined || r.metadata?.cases3D !== undefined) {
+      cases2D += (Number(r.metadata?.cases2D) || 0);
+      cases3D += (Number(r.metadata?.cases3D) || 0);
+    } else if (Array.isArray(r.details) && r.details.length > 0) {
+      let detailCasesSum = 0;
+      for (const d of r.details) {
+        const c = Number(d.finished) || 0;
+        detailCasesSum += c;
+        const task = String(d.taskType || r.metadata?.taskType || '');
+        if (/3d/i.test(task)) {
+          cases3D += c;
+        } else {
+          cases2D += c;
+        }
+      }
+      const reportTotal = Number(r.casesFinished) || 0;
+      if (reportTotal > detailCasesSum) {
+        const rem = reportTotal - detailCasesSum;
+        const fallbackTask = String(r.metadata?.taskType || '');
+        if (/3d/i.test(fallbackTask)) {
+          cases3D += rem;
+        } else {
+          cases2D += rem;
+        }
+      }
+    } else {
+      const reportTotal = Number(r.casesFinished) || 0;
+      const fallbackTask = String(r.metadata?.taskType || '');
+      if (/3d/i.test(fallbackTask)) {
+        cases3D += reportTotal;
+      } else {
+        cases2D += reportTotal;
+      }
+    }
+  }
+
+  const RATE_2D = 1.65;
+  const RATE_3D = 2.75;
+  const rawEarnings = (cases2D * RATE_2D) + (cases3D * RATE_3D);
+  const expectedEarnings = Number(rawEarnings.toFixed(2));
+
   return {
     hasData: true,
     totalCases,
     avgCasesPerDay,
     avgCasesPerHour,
     totalPoints,
+    cases2D,
+    cases3D,
+    expectedEarnings,
     reportCount: reports.length
   };
 }
@@ -638,15 +737,64 @@ function renderDailyCasesBarChart(filteredReports) {
     }
 
     // X-axis label
-    if (idx % labelInterval === 0 || idx === N - 1) {
-      const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      xLabel.setAttribute('x', x + barW / 2);
-      xLabel.setAttribute('y', padTop + plotH + 20);
-      xLabel.setAttribute('text-anchor', 'middle');
-      xLabel.setAttribute('class', 'chart-axis-text');
+    const hasNote = Boolean(userNotes && userNotes[r.date]);
+    if (idx % labelInterval === 0 || idx === N - 1 || hasNote) {
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('class', `chart-axis-label-group ${hasNote ? 'has-note' : ''}`);
+      g.setAttribute('cursor', 'pointer');
+      if (hasNote) {
+        g.setAttribute('title', `Note recorded for ${r.date}. Click to view.`);
+      }
+
       const dParts = r.date.split('-');
-      xLabel.textContent = dParts.length === 3 ? `${Number(dParts[1])}/${Number(dParts[2])}` : r.date;
-      svg.append(xLabel);
+      const dateTextStr = dParts.length === 3 ? `${Number(dParts[1])}/${Number(dParts[2])}` : r.date;
+      const centerX = x + barW / 2;
+
+      if (hasNote) {
+        const iconW = 11;
+        const gap = 5;
+        const estimatedTextW = dateTextStr.length * 6.2;
+        const startX = centerX - (iconW + gap + estimatedTextW) / 2;
+
+        const noteSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        noteSvg.setAttribute('x', startX);
+        noteSvg.setAttribute('y', padTop + plotH + 9);
+        noteSvg.setAttribute('width', iconW);
+        noteSvg.setAttribute('height', iconW);
+        noteSvg.setAttribute('viewBox', '0 0 24 24');
+        noteSvg.setAttribute('fill', 'none');
+        noteSvg.setAttribute('stroke', '#f59e0b');
+        noteSvg.setAttribute('stroke-width', '2.5');
+        noteSvg.setAttribute('stroke-linecap', 'round');
+        noteSvg.setAttribute('stroke-linejoin', 'round');
+        noteSvg.innerHTML = '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>';
+        g.append(noteSvg);
+
+        const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        xLabel.setAttribute('x', startX + iconW + gap);
+        xLabel.setAttribute('y', padTop + plotH + 19);
+        xLabel.setAttribute('text-anchor', 'start');
+        xLabel.setAttribute('class', 'chart-axis-text');
+        xLabel.textContent = dateTextStr;
+        g.append(xLabel);
+      } else {
+        const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        xLabel.setAttribute('x', centerX);
+        xLabel.setAttribute('y', padTop + plotH + 20);
+        xLabel.setAttribute('text-anchor', 'middle');
+        xLabel.setAttribute('class', 'chart-axis-text');
+        xLabel.textContent = dateTextStr;
+        g.append(xLabel);
+      }
+
+      g.onclick = (e) => {
+        e.stopPropagation();
+        selectedChartDate = (selectedChartDate === r.date) ? null : r.date;
+        renderDailyCasesBarChart(filteredReports);
+        renderHourlyProductivityLineChart(filteredReports);
+      };
+
+      svg.append(g);
     }
 
     // Interactive Popover on Hover
@@ -1129,6 +1277,7 @@ function renderHourlyProductivityLineChart(filteredReports) {
     const empty = element('div', '', 'chart-empty-notice');
     empty.textContent = 'No hourly productivity data available for this date range.';
     container.append(empty);
+    renderShiftNotesSection(null, []);
     return;
   }
 
@@ -1138,7 +1287,10 @@ function renderHourlyProductivityLineChart(filteredReports) {
     ? chron.find(r => r.date === selectedChartDate)
     : chron[chron.length - 1]; // Latest date by default
 
-  if (!activeReport) return;
+  if (!activeReport) {
+    renderShiftNotesSection(null, []);
+    return;
+  }
 
   const prettyDate = new Date(activeReport.date + 'T00:00:00').toLocaleDateString(undefined, {
     weekday: 'short',
@@ -1178,10 +1330,414 @@ function renderHourlyProductivityLineChart(filteredReports) {
     const empty = element('div', '', 'chart-empty-notice');
     empty.textContent = `No hourly details recorded for ${activeReport.date}.`;
     container.append(empty);
+    renderShiftNotesSection(activeReport.date, reportsList);
     return;
   }
 
   renderSingleDateLineChart(container, points, activeReport, tooltip, reportsList);
+  renderShiftNotesSection(activeReport.date, reportsList);
+}
+
+// ============================================================================
+// MODULE 4b: DaybookNotes (Daily Notes & Additional Information)
+// ============================================================================
+
+function renderDailyNotesSection(activeDate, reportsList = []) {
+  const card = $('notes-card') || $('shift-notes-card');
+  const titleEl = $('notes-card-title');
+  const descEl = $('notes-card-desc');
+  const dateBadge = $('notes-card-date-badge');
+  const editLabel = $('notes-card-edit-label');
+  const contentEl = $('notes-card-content');
+  if (!card || !contentEl) return;
+
+  currentActiveNotesDate = activeDate;
+
+  const noteText = (activeDate && userNotes) ? userNotes[activeDate] : null;
+
+  // Show the notes section only if notes are available for this date
+  if (!activeDate || !noteText) {
+    card.classList.add('hidden');
+    contentEl.replaceChildren();
+    return;
+  }
+
+  // Note IS available! Show the section
+  card.classList.remove('hidden');
+
+  const dObj = new Date(activeDate + 'T00:00:00');
+  const prettyDate = dObj.toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
+  if (titleEl) titleEl.textContent = 'Notes';
+  if (descEl) descEl.textContent = 'Additional information, context, or observations about the day.';
+  if (dateBadge) dateBadge.textContent = prettyDate;
+  if (editLabel) editLabel.textContent = 'Edit Note';
+
+  contentEl.replaceChildren();
+
+  const box = document.createElement('div');
+  box.className = 'notes-content-box';
+
+  const p = document.createElement('p');
+  p.className = 'notes-text-display';
+  p.textContent = noteText;
+  box.append(p);
+
+  const footer = document.createElement('div');
+  footer.className = 'notes-meta-footer';
+
+  const tag = document.createElement('span');
+  tag.className = 'notes-badge-tag';
+  tag.innerHTML = `
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+    </svg>
+    Recorded for ${activeDate}
+  `;
+  footer.append(tag);
+
+  const hint = document.createElement('span');
+  hint.textContent = 'Click "Edit Note" above to update or delete';
+  footer.append(hint);
+
+  box.append(footer);
+  contentEl.append(box);
+}
+
+const renderShiftNotesSection = renderDailyNotesSection;
+
+let notesModalSelectedDate = null;
+let notesModalViewYear = new Date().getFullYear();
+let notesModalViewMonth = new Date().getMonth();
+
+const NOTES_MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+function renderNotesModalCalendar() {
+  const grid = $('notes-cal-days-grid');
+  const title = $('notes-cal-month-title');
+  if (!grid || !title) return;
+
+  title.textContent = `${NOTES_MONTH_NAMES[notesModalViewMonth]} ${notesModalViewYear}`;
+  grid.replaceChildren();
+
+  // Set of dates that have actual report data
+  const reportDates = new Set(rawReportsData.map(r => r.date).filter(Boolean));
+
+  const firstDay = new Date(notesModalViewYear, notesModalViewMonth, 1).getDay();
+  const daysInMonth = new Date(notesModalViewYear, notesModalViewMonth + 1, 0).getDate();
+  const prevMonthDays = new Date(notesModalViewYear, notesModalViewMonth, 0).getDate();
+
+  for (let i = 0; i < 42; i++) {
+    const cell = document.createElement('button');
+    cell.className = 'notes-cal-day-cell';
+    cell.type = 'button';
+
+    let cellDate;
+    let isOtherMonth = false;
+    if (i < firstDay) {
+      const dayNum = prevMonthDays - firstDay + 1 + i;
+      const d = new Date(notesModalViewYear, notesModalViewMonth - 1, dayNum);
+      cellDate = toIsoDate(d);
+      cell.textContent = String(dayNum);
+      isOtherMonth = true;
+    } else if (i < firstDay + daysInMonth) {
+      const dayNum = i - firstDay + 1;
+      const d = new Date(notesModalViewYear, notesModalViewMonth, dayNum);
+      cellDate = toIsoDate(d);
+      cell.textContent = String(dayNum);
+    } else {
+      const dayNum = i - (firstDay + daysInMonth) + 1;
+      const d = new Date(notesModalViewYear, notesModalViewMonth + 1, dayNum);
+      cellDate = toIsoDate(d);
+      cell.textContent = String(dayNum);
+      isOtherMonth = true;
+    }
+
+    if (isOtherMonth) {
+      cell.classList.add('is-other-month');
+    }
+
+    cell.dataset.date = cellDate;
+    const hasReport = reportDates.has(cellDate);
+    const hasNote = Boolean(userNotes && userNotes[cellDate]);
+    const isSelected = cellDate === notesModalSelectedDate;
+
+    if (hasReport) {
+      cell.classList.add('is-enabled');
+      cell.title = hasNote ? `${cellDate}: Report available (Note recorded)` : `${cellDate}: Report available`;
+
+      if (hasNote) {
+        const dot = document.createElement('span');
+        dot.className = 'cal-note-dot';
+        dot.setAttribute('aria-hidden', 'true');
+        cell.append(dot);
+      }
+
+      if (isSelected) {
+        cell.classList.add('is-selected');
+        cell.setAttribute('aria-pressed', 'true');
+      }
+
+      cell.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        selectNotesModalDate(cellDate);
+      };
+    } else {
+      cell.classList.add('is-disabled');
+      cell.disabled = true;
+      cell.tabIndex = -1;
+      cell.title = `${cellDate}: No report data`;
+    }
+
+    grid.append(cell);
+  }
+}
+
+function selectNotesModalDate(isoDate) {
+  notesModalSelectedDate = isoDate;
+
+  if (isoDate && typeof isoDate === 'string' && isoDate.includes('-')) {
+    const parts = isoDate.split('-').map(Number);
+    if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      notesModalViewYear = parts[0];
+      notesModalViewMonth = parts[1] - 1;
+    }
+  }
+
+  // Update hidden input
+  const input = $('notes-date-input');
+  if (input) input.value = isoDate;
+
+  // Update selected chip
+  const chipText = $('notes-selected-date-text');
+  if (chipText) {
+    const dObj = new Date(isoDate + 'T00:00:00');
+    const formatted = dObj.toLocaleDateString(undefined, {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+    chipText.textContent = formatted;
+  }
+
+  // Pre-populate note in textarea
+  const textInput = $('notes-text-input');
+  const deleteBtn = $('notes-delete-btn');
+  const submitBtn = $('notes-submit-btn');
+  const modalTitle = $('notes-modal-title');
+  const charCount = $('notes-char-count');
+
+  const existingText = userNotes[isoDate] || '';
+  if (textInput) textInput.value = existingText;
+  if (charCount) {
+    charCount.textContent = existingText ? `${existingText.length} characters` : 'Multiline text';
+  }
+
+  if (existingText) {
+    if (deleteBtn) deleteBtn.classList.remove('hidden');
+    if (submitBtn) submitBtn.textContent = 'Update Note';
+    if (modalTitle) modalTitle.textContent = 'Edit Note';
+  } else {
+    if (deleteBtn) deleteBtn.classList.add('hidden');
+    if (submitBtn) submitBtn.textContent = 'Save Note';
+    if (modalTitle) modalTitle.textContent = 'Add Note';
+  }
+
+  renderNotesModalCalendar();
+}
+
+function openNotesModal(preselectedDate) {
+  const modal = $('notes-modal');
+  const textInput = $('notes-text-input');
+  if (!modal || !textInput) return;
+
+  // Extract unique dates that have actual report data
+  const availableDates = [...new Set(rawReportsData.map(r => r.date).filter(Boolean))].sort().reverse();
+
+  if (!availableDates.length) {
+    alert('No report data available yet to attach notes to.');
+    return;
+  }
+
+  const targetDate = (preselectedDate && availableDates.includes(preselectedDate))
+    ? preselectedDate
+    : availableDates[0];
+
+  try {
+    const [y, m] = targetDate.split('-').map(Number);
+    notesModalViewYear = y;
+    notesModalViewMonth = m - 1;
+  } catch (_) {
+    const now = new Date();
+    notesModalViewYear = now.getFullYear();
+    notesModalViewMonth = now.getMonth();
+  }
+
+  selectNotesModalDate(targetDate);
+  modal.classList.remove('hidden');
+  setTimeout(() => textInput.focus(), 60);
+}
+
+function closeNotesModal() {
+  const modal = $('notes-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function initNotesModal() {
+  if (isNotesModalInitialized) return;
+  isNotesModalInitialized = true;
+
+  const addNotesBtn = $('dashboard-add-notes-btn');
+  const modal = $('notes-modal');
+  const closeBtn = $('notes-modal-close-btn');
+  const cancelBtn = $('notes-cancel-btn');
+  const form = $('notes-form');
+  const textInput = $('notes-text-input');
+  const deleteBtn = $('notes-delete-btn');
+  const submitBtn = $('notes-submit-btn');
+  const charCount = $('notes-char-count');
+  const editCardBtn = $('notes-card-edit-btn');
+  const prevBtn = $('notes-cal-prev-btn');
+  const nextBtn = $('notes-cal-next-btn');
+
+  if (addNotesBtn) {
+    addNotesBtn.addEventListener('click', () => {
+      openNotesModal(selectedChartDate || currentActiveNotesDate);
+    });
+  }
+
+  if (editCardBtn) {
+    editCardBtn.addEventListener('click', () => {
+      openNotesModal(currentActiveNotesDate || selectedChartDate);
+    });
+  }
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      notesModalViewMonth--;
+      if (notesModalViewMonth < 0) {
+        notesModalViewMonth = 11;
+        notesModalViewYear--;
+      }
+      renderNotesModalCalendar();
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      notesModalViewMonth++;
+      if (notesModalViewMonth > 11) {
+        notesModalViewMonth = 0;
+        notesModalViewYear++;
+      }
+      renderNotesModalCalendar();
+    });
+  }
+
+  if (closeBtn) closeBtn.addEventListener('click', closeNotesModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeNotesModal);
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeNotesModal();
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+      closeNotesModal();
+    }
+  });
+
+  if (textInput && charCount) {
+    textInput.addEventListener('input', () => {
+      const len = textInput.value.length;
+      charCount.textContent = len ? `${len} characters` : 'Multiline text';
+    });
+  }
+
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const date = $('notes-date-input')?.value || notesModalSelectedDate;
+      const text = textInput?.value?.trim() || '';
+      if (!date) {
+        alert('Please select a date from the calendar.');
+        return;
+      }
+
+      const prevSubmitText = submitBtn ? submitBtn.textContent : 'Save Note';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+      }
+
+      try {
+        const res = await api('/api/notes', {
+          method: 'POST',
+          body: JSON.stringify({ date, text })
+        });
+        if (res && res.notes) {
+          userNotes = res.notes;
+        } else if (text) {
+          userNotes[date] = text;
+        } else {
+          delete userNotes[date];
+        }
+        closeNotesModal();
+        filterAndRenderDashboard();
+      } catch (err) {
+        alert(err.message || 'Failed to save note.');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = prevSubmitText;
+        }
+      }
+    });
+  }
+
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', async () => {
+      const date = $('notes-date-input')?.value || notesModalSelectedDate;
+      if (!date) return;
+      if (!confirm(`Are you sure you want to delete the note for ${date}?`)) return;
+
+      deleteBtn.disabled = true;
+      deleteBtn.textContent = 'Deleting...';
+
+      try {
+        const res = await api('/api/notes', {
+          method: 'DELETE',
+          body: JSON.stringify({ date })
+        });
+        if (res && res.notes) {
+          userNotes = res.notes;
+        } else {
+          delete userNotes[date];
+        }
+        closeNotesModal();
+        filterAndRenderDashboard();
+      } catch (err) {
+        alert(err.message || 'Failed to delete note.');
+      } finally {
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = 'Delete Note';
+      }
+    });
+  }
 }
 
 function formatFactDate(dateStr) {
@@ -1489,14 +2045,30 @@ function filterAndRenderDashboard() {
       unit: '/hr'
     });
 
-    if (totalPointsVal) totalPointsVal.textContent = currentMetrics.totalPoints.toLocaleString();
-    if (totalPointsUnit) totalPointsUnit.classList.remove('hidden');
-    if (totalPointsSubhead) {
-      totalPointsSubhead.textContent = `Cumulative performance score across completed cases`;
+    if (totalPointsVal) {
+      totalPointsVal.textContent = currentMetrics.expectedEarnings.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
     }
-    renderDeltaBadge(totalPointsDelta, currentMetrics.totalPoints, compMetrics.totalPoints, {
+    if (totalPointsUnit) {
+      totalPointsUnit.textContent = 'MAD';
+      totalPointsUnit.classList.remove('hidden');
+    }
+    if (totalPointsSubhead) {
+      const ptsFormatted = currentMetrics.totalPoints.toLocaleString();
+      if (currentMetrics.cases3D > 0 && currentMetrics.cases2D > 0) {
+        totalPointsSubhead.textContent = `${ptsFormatted} pts earned (${currentMetrics.cases2D.toLocaleString()} 2D · ${currentMetrics.cases3D.toLocaleString()} 3D)`;
+      } else if (currentMetrics.cases3D > 0) {
+        totalPointsSubhead.textContent = `${ptsFormatted} pts earned (${currentMetrics.cases3D.toLocaleString()} 3D cases)`;
+      } else {
+        totalPointsSubhead.textContent = `${ptsFormatted} pts earned (${currentMetrics.cases2D.toLocaleString()} 2D cases)`;
+      }
+    }
+    renderDeltaBadge(totalPointsDelta, currentMetrics.expectedEarnings, compMetrics.expectedEarnings, {
       hasCompData: compMetrics.hasData,
-      unit: 'pts'
+      unit: 'MAD',
+      decimals: 2
     });
   } else {
     if (totalCasesVal) totalCasesVal.textContent = '—';
@@ -1507,12 +2079,15 @@ function filterAndRenderDashboard() {
     if (totalCasesUnit) totalCasesUnit.classList.add('hidden');
     if (avgDayUnit) avgDayUnit.classList.add('hidden');
     if (avgHourUnit) avgHourUnit.classList.add('hidden');
-    if (totalPointsUnit) totalPointsUnit.classList.add('hidden');
+    if (totalPointsUnit) {
+      totalPointsUnit.textContent = 'MAD';
+      totalPointsUnit.classList.add('hidden');
+    }
 
     if (totalCasesSubhead) totalCasesSubhead.textContent = 'Verified finished cases across period';
     if (avgDaySubhead) avgDaySubhead.textContent = 'Mean volume completed per active working day';
     if (avgHourSubhead) avgHourSubhead.textContent = 'Mean throughput per active working hour';
-    if (totalPointsSubhead) totalPointsSubhead.textContent = 'Cumulative performance score across completed cases';
+    if (totalPointsSubhead) totalPointsSubhead.textContent = 'Estimated payout based on completed cases';
 
     renderDeltaBadge(totalCasesDelta, 0, 0, { hasCompData: false });
     renderDeltaBadge(avgDayDelta, 0, 0, { hasCompData: false });
@@ -2263,8 +2838,8 @@ async function exportDashboardPdf() {
         value: `${$('kpi-avg-hour-val')?.textContent || '0'} cases/hr`
       },
       {
-        label: 'PERFORMANCE SCORE',
-        value: `${$('kpi-total-points-val')?.textContent || '0'} pts`
+        label: 'EXPECTED EARNINGS',
+        value: `${$('kpi-total-points-val')?.textContent || '0'} MAD`
       }
     ];
 
@@ -3131,12 +3706,32 @@ async function load() {
   } catch (err) {
     hidePageLoader();
     $('signin').classList.remove('hidden');
+    const authToggle = $('auth-theme-toggle');
+    if (authToggle && !authToggle.dataset.wired) {
+      authToggle.dataset.wired = 'true';
+      authToggle.onclick = () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        setTheme(isDark ? 'light' : 'dark');
+      };
+    }
     return;
+  }
+
+  function initAuthThemeToggle() {
+    const authToggle = $('auth-theme-toggle');
+    if (authToggle && !authToggle.dataset.wired) {
+      authToggle.dataset.wired = 'true';
+      authToggle.onclick = () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        setTheme(isDark ? 'light' : 'dark');
+      };
+    }
   }
 
   if (response.status === 401) {
     document.body.classList.add('signin-mode');
     $('signin').classList.remove('hidden');
+    initAuthThemeToggle();
     hidePageLoader();
     return;
   }
@@ -3429,6 +4024,7 @@ const DaybookDateUtils = {
 const DaybookMetrics = {
   computeMetrics,
   renderDeltaBadge,
+  initEarningsTooltip,
   getReportHourlyBreakdown,
   detectDuplicateReports,
   renderDuplicateConflicts,
@@ -3474,6 +4070,20 @@ const DaybookFolderExplorer = {
   initOnboarding
 };
 
+const DaybookNotes = {
+  get userNotes() { return userNotes; },
+  set userNotes(val) { userNotes = val; },
+  get notesModalSelectedDate() { return notesModalSelectedDate; },
+  set notesModalSelectedDate(val) { notesModalSelectedDate = val; },
+  renderDailyNotesSection,
+  renderShiftNotesSection,
+  openNotesModal,
+  closeNotesModal,
+  initNotesModal,
+  renderNotesModalCalendar,
+  selectNotesModalDate
+};
+
 const DaybookApp = {
   filterAndRenderDashboard,
   loadReports,
@@ -3494,6 +4104,7 @@ if (typeof window !== 'undefined') {
     DateUtils: DaybookDateUtils,
     Metrics: DaybookMetrics,
     Charts: DaybookCharts,
+    Notes: DaybookNotes,
     FunFacts: DaybookFunFacts,
     DateRangePicker: DaybookDateRangePicker,
     FolderExplorer: DaybookFolderExplorer,

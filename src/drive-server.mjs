@@ -5,7 +5,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { DriveApi } from './drive-api.mjs';
-import { DriveStore } from './drive-store.mjs';
+import { DriveStore, MemoryDriveStore } from './drive-store.mjs';
 import { ingestFolder } from './drive-pipeline.mjs';
 
 try {
@@ -56,14 +56,254 @@ async function oauthToken(config, fields, fetcher) {
   return result;
 }
 
+function renderDevAccountChooser() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choose an Account — Dental Monitoring</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px 16px;
+    }
+    .account-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 440px;
+      padding: 36px 32px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    }
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.01em;
+    }
+    .main-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+    .sub-title {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 28px;
+    }
+    .account-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .account-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: #ffffff;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      text-align: left;
+    }
+    .account-btn:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+    }
+    .account-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .account-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .account-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .account-email {
+      font-size: 13px;
+      color: #64748b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .account-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 500;
+      color: #059669;
+      background: #ecfdf5;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-top: 4px;
+    }
+    .custom-email-box {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 16px;
+      background: #f8fafc;
+      margin-bottom: 24px;
+    }
+    .custom-email-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+    .custom-form {
+      display: flex;
+      gap: 8px;
+    }
+    .custom-input {
+      flex: 1;
+      padding: 9px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13.5px;
+      outline: none;
+      background: #ffffff;
+    }
+    .custom-input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+    .custom-btn {
+      padding: 9px 16px;
+      background: #0f172a;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      white-space: nowrap;
+    }
+    .custom-btn:hover {
+      background: #334155;
+    }
+    .dev-notice {
+      padding: 12px 14px;
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #92400e;
+    }
+    .dev-notice strong {
+      font-weight: 600;
+    }
+    .dev-notice code {
+      font-family: monospace;
+      font-size: 11px;
+      background: rgba(0,0,0,0.05);
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="account-card">
+    <div class="header-logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+      </svg>
+      <span class="brand-title">Dental Monitoring</span>
+    </div>
+    <h1 class="main-title">Choose an account</h1>
+    <p class="sub-title">to continue to Dental Monitoring Dashboard</p>
+
+    <div class="account-list">
+      <a class="account-btn" href="/auth/login?email=mr.debjit.sadhukhan@gmail.com">
+        <div class="account-avatar">DS</div>
+        <div class="account-info">
+          <div class="account-name">Debjit Sadhukhan</div>
+          <div class="account-email">mr.debjit.sadhukhan@gmail.com</div>
+          <span class="account-badge">Sample reports loaded</span>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </a>
+    </div>
+
+    <div class="custom-email-box">
+      <div class="custom-email-title">Or sign in with any other email:</div>
+      <form class="custom-form" method="GET" action="/auth/login">
+        <input class="custom-input" type="email" name="email" placeholder="e.g. doctor@clinic.com" required>
+        <button class="custom-btn" type="submit">Sign In</button>
+      </form>
+    </div>
+
+    <div class="dev-notice">
+      <strong>⚡ Local Development Mode</strong><br>
+      You are running with <code>mock-client-id</code>. To use live Google account sign-in with Google's servers, add your real Google OAuth Client ID and Secret to <code>.env</code>.
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
 export function createDriveServer({ env = process.env, store, access, fetcher = fetch } = {}) {
   const config = settings(env);
-  store ||= new DriveStore({
-    databaseId: env.FIRESTORE_DATABASE_ID || env.DAYBOOK_DATABASE_ID || 'daybook-db',
-    encryptionKey: env.DAYBOOK_ENCRYPTION_KEY || env.DENTAL_MONITORING_DASHBOARD_ENCRYPTION_KEY,
-  });
+  const isMockDev = config.clientId === 'mock-client-id' || env.LOCAL_DEV === 'true';
+  if (!store) {
+    if (isMockDev || (!env.GOOGLE_APPLICATION_CREDENTIALS && !env.K_SERVICE && !env.GAE_ENV)) {
+      store = new MemoryDriveStore();
+    } else {
+      store = new DriveStore({
+        databaseId: env.FIRESTORE_DATABASE_ID || env.DAYBOOK_DATABASE_ID || 'daybook-db',
+        encryptionKey: env.DAYBOOK_ENCRYPTION_KEY || env.DENTAL_MONITORING_DASHBOARD_ENCRYPTION_KEY,
+      });
+    }
+  }
   const verifier = new OAuth2Client(config.clientId);
   access ||= async user => {
+    if (isMockDev) {
+      return {
+        async listFolders() { return [{ id: 'mock-folder-1', name: 'Clinical PDF Reports' }, { id: 'mock-folder-2', name: 'Dental Exports 2026' }]; },
+        async getFolder(id) { return { id, name: id === 'mock-folder-2' ? 'Dental Exports 2026' : 'Clinical PDF Reports', capabilities: { canAddChildren: true }, mimeType: 'application/vnd.google-apps.folder' }; },
+        async listPdfs() { return []; },
+        async archiveFolder() { return { id: 'mock-archive' }; },
+        async moveToArchive() {},
+      };
+    }
     const token = await oauthToken(config, { refresh_token: user.refreshToken, grant_type: 'refresh_token' }, fetcher);
     return new DriveApi(token.access_token, fetcher);
   };
@@ -74,7 +314,11 @@ export function createDriveServer({ env = process.env, store, access, fetcher = 
     try {
       const user = await store.getUser(userId);
       if (!user?.folderId) throw new Error('No Google Drive folder connected yet. Please select a folder in Settings.');
-      result = await ingestFolder({ userId, folderId: user.folderId, drive: await access(user), store });
+      if (isMockDev) {
+        result = { checked: 5, imported: 0, archived: 5, skipped: 5, errors: [] };
+      } else {
+        result = await ingestFolder({ userId, folderId: user.folderId, drive: await access(user), store });
+      }
     } catch (cause) { error = cause.message; }
     await store.finishScan(userId, result || null, error);
     if (error) throw new Error(error);
@@ -83,16 +327,76 @@ export function createDriveServer({ env = process.env, store, access, fetcher = 
   const server = createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'no-referrer');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '0');
+    res.setHeader('Permissions-Policy', 'geolocation=(), camera=(), microphone=(), payment=()');
+    if (config.secure) {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    }
     res.setHeader('Content-Security-Policy', "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://*.googleusercontent.com https://lh3.googleusercontent.com data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
     try {
       const url = new URL(req.url, config.base);
+      const forwardedHost = (req.headers['x-forwarded-host'] || req.headers.host || '').split(':')[0];
+      const targetHost = new URL(config.base).hostname;
+      if (targetHost && targetHost !== 'localhost' && targetHost !== '127.0.0.1' && forwardedHost && forwardedHost !== targetHost) {
+        res.writeHead(301, {
+          Location: `${config.base}${url.pathname}${url.search}`,
+          'Cache-Control': 'public, max-age=31536000'
+        });
+        return res.end();
+      }
       if (req.method === 'GET' && url.pathname === '/auth/login') {
+        if (isMockDev) {
+          const chosenEmail = url.searchParams.get('email');
+          const isBrowserHtml = req.headers['accept']?.includes('text/html');
+
+          // If an email was selected, or if called non-interactively (e.g. automated test suites)
+          if (chosenEmail || !isBrowserHtml) {
+            const emailToUse = (chosenEmail || 'mr.debjit.sadhukhan@gmail.com').trim().toLowerCase();
+            const userId = emailToUse === 'mr.debjit.sadhukhan@gmail.com' ? 'sdebjit-local' : `user-${createHash('md5').update(emailToUse).digest('hex').slice(0, 12)}`;
+            let user = await store.getUser(userId);
+            if (!user) {
+              const namePart = emailToUse.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+              user = {
+                id: userId,
+                email: emailToUse,
+                name: namePart,
+                picture: '',
+                folderId: 'mock-folder-1',
+                folderName: 'Clinical PDF Reports',
+                scheduleMinutes: 1440,
+                termsAcceptedAt: new Date().toISOString(),
+                onboardedAt: new Date().toISOString(),
+                lastScanAt: new Date().toISOString(),
+                lastScanResult: { checked: 5, imported: 1, archived: 1, skipped: 4, errors: [] },
+                nextScanAt: Date.now() + 86400000,
+                scanLeaseUntil: 0,
+              };
+              await store.upsertUser(userId, user);
+              if (store.reportsMap && !store.reportsMap.has(userId)) {
+                const sampleReports = store.reportsMap.get('sdebjit-local') || [];
+                store.reportsMap.set(userId, [...sampleReports]);
+              }
+            }
+            const session = await store.createSession(userId);
+            return redirect(res, '/', {
+              'Set-Cookie': [
+                setCookie(SESSION, session.token, config.secure, 30 * 86400),
+                setCookie('daybook_session', session.token, config.secure, 30 * 86400)
+              ]
+            });
+          }
+
+          const html = renderDevAccountChooser();
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+          return res.end(html);
+        }
         const state = randomBytes(24).toString('base64url');
         const codeVerifier = randomBytes(32).toString('base64url');
         const challenge = createHash('sha256').update(codeVerifier).digest('base64url');
         await store.putOauthState(state, codeVerifier, Date.now() + 10 * 60000);
         const target = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-        for (const [key, value] of Object.entries({ client_id: config.clientId, redirect_uri: `${config.base}/auth/callback`, response_type: 'code', scope: SCOPES.join(' '), access_type: 'offline', prompt: 'consent', state, code_challenge: challenge, code_challenge_method: 'S256' })) target.searchParams.set(key, value);
+        for (const [key, value] of Object.entries({ client_id: config.clientId, redirect_uri: `${config.base}/auth/callback`, response_type: 'code', scope: SCOPES.join(' '), access_type: 'offline', prompt: 'select_account consent', state, code_challenge: challenge, code_challenge_method: 'S256' })) target.searchParams.set(key, value);
         return redirect(res, target.href, { 'Set-Cookie': setCookie(SESSION, `oauth:${state}`, config.secure, 600) });
       }
       if (req.method === 'GET' && url.pathname === '/auth/callback') {
@@ -156,7 +460,7 @@ export function createDriveServer({ env = process.env, store, access, fetcher = 
         for (const id of users) { try { results.push({ id, result: await scan(id) }); } catch (error) { results.push({ id, error: error.message }); } }
         return json(res, 200, { checkedUsers: users.length, results });
       }
-      if (!url.pathname.startsWith('/api/')) return json(res, 404, { error: 'Not found' });
+      if (!url.pathname.startsWith('/api/') && url.pathname !== '/me') return json(res, 404, { error: 'Not found' });
       const sessionToken = getSessionToken(req);
       const session = await store.session(sessionToken);
       if (!session) return json(res, 401, { error: 'Sign in with Google to continue.' });
@@ -179,7 +483,7 @@ export function createDriveServer({ env = process.env, store, access, fetcher = 
         if (!originMatches || csrfHeader !== session.csrf) return json(res, 403, { error: 'Security check failed. Reload the page.' });
       }
       const userId = session.userId;
-      if (url.pathname === '/api/me' && req.method === 'GET') {
+      if ((url.pathname === '/api/me' || url.pathname === '/me') && req.method === 'GET') {
         const user = await store.getUser(userId);
         return json(res, 200, {
           csrf: session.csrf,
@@ -271,6 +575,27 @@ export function createDriveServer({ env = process.env, store, access, fetcher = 
         return json(res, 200, { result, lastScanAt: new Date().toISOString() });
       }
       if (url.pathname === '/api/reports' && req.method === 'GET') return json(res, 200, { reports: await store.reports(userId) });
+      if (url.pathname === '/api/notes' && req.method === 'GET') {
+        const notes = typeof store.getNotes === 'function' ? await store.getNotes(userId) : {};
+        return json(res, 200, { notes });
+      }
+      if (url.pathname === '/api/notes' && req.method === 'POST') {
+        const bodyData = await body(req);
+        const date = (bodyData.date || '').trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+          return json(res, 400, { error: 'A valid date (YYYY-MM-DD) is required.' });
+        }
+        const text = (bodyData.text || '').trim();
+        const notes = typeof store.saveNote === 'function' ? await store.saveNote(userId, date, text) : {};
+        return json(res, 200, { ok: true, notes });
+      }
+      if (url.pathname === '/api/notes' && req.method === 'DELETE') {
+        const bodyData = await body(req);
+        const date = (bodyData.date || '').trim();
+        if (!date) return json(res, 400, { error: 'Date is required.' });
+        const notes = typeof store.deleteNote === 'function' ? await store.deleteNote(userId, date) : {};
+        return json(res, 200, { ok: true, notes });
+      }
       if (url.pathname === '/api/reports/resolve-conflict' && req.method === 'POST') {
         const { date, keepVersionId } = await body(req);
         if (!date || !keepVersionId) throw new Error('Specify the report date and version to keep.');
