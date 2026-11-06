@@ -643,9 +643,15 @@ export function createDriveServer({ env = process.env, store, access, fetcher = 
   return { server, config, scan };
 }
 
+export function startServer(options = {}) {
+  const { server, config } = createDriveServer(options);
+  return server.listen(config.port, '0.0.0.0', () => console.log(`Daybook listening on port ${config.port}`));
+}
+
+/* node:coverage disable */
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   try {
-    const { server, config } = createDriveServer();
-    server.listen(config.port, '0.0.0.0', () => console.log(`Daybook listening on port ${config.port}`));
+    startServer();
   } catch (error) { console.error(error.message); process.exitCode = 1; }
 }
+/* node:coverage enable */
