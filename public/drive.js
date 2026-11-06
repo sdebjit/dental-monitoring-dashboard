@@ -883,6 +883,48 @@ function renderDailyCasesBarChart(filteredReports) {
   container.append(svg);
 }
 
+function getThemeAttribute(attr, defaultVal = '') {
+  try {
+    return (typeof document !== 'undefined' && document && document.documentElement && document.documentElement.getAttribute)
+      ? (document.documentElement.getAttribute(attr) || defaultVal)
+      : defaultVal;
+  } catch (e) {
+    return defaultVal;
+  }
+}
+
+function getSmoothSplinePath(coords, padTop = 30, plotH = 185, tension = 0.2) {
+  if (!coords || !coords.length) return '';
+  const first = coords[0];
+  if (coords.length === 1) return `M ${first.x.toFixed(1)} ${first.y.toFixed(1)}`;
+  if (coords.length === 2) {
+    return `M ${first.x.toFixed(1)} ${first.y.toFixed(1)} L ${coords[1].x.toFixed(1)} ${coords[1].y.toFixed(1)}`;
+  }
+
+  const minY = padTop;
+  const maxY = padTop + plotH;
+  let d = `M ${first.x.toFixed(1)} ${first.y.toFixed(1)}`;
+
+  for (let i = 0; i < coords.length - 1; i++) {
+    const p0 = i > 0 ? coords[i - 1] : coords[i];
+    const p1 = coords[i];
+    const p2 = coords[i + 1];
+    const p3 = i < coords.length - 2 ? coords[i + 2] : p2;
+
+    const cp1x = p1.x + (p2.x - p0.x) * tension;
+    let cp1y = p1.y + (p2.y - p0.y) * tension;
+    const cp2x = p2.x - (p3.x - p1.x) * tension;
+    let cp2y = p2.y - (p3.y - p1.y) * tension;
+
+    // Clamp Y to prevent negative overshoot below axis
+    cp1y = Math.min(maxY, Math.max(minY, cp1y));
+    cp2y = Math.min(maxY, Math.max(minY, cp2y));
+
+    d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return d;
+}
+
 function renderSingleDateLineChart(container, points, report, tooltip, originalReports) {
   const svgW = 900;
   const svgH = 260;
@@ -904,11 +946,16 @@ function renderSingleDateLineChart(container, points, report, tooltip, originalR
   svg.setAttribute('role', 'img');
   svg.setAttribute('aria-label', `Hourly Productivity Line Chart for ${report.date}`);
 
+  const isUnslop = getThemeAttribute('data-theme-style') === 'unslop';
+  const isDark = getThemeAttribute('data-theme').includes('dark');
+  const stopColor = isUnslop ? (isDark ? '#2dd4bf' : '#0f766e') : '#10b981';
+  const stopOpacity = isUnslop ? (isDark ? '0.24' : '0.14') : '0.32';
+
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
   defs.innerHTML = `
     <linearGradient id="hourly-area-gradient-single" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#10b981" stop-opacity="0.32" />
-      <stop offset="100%" stop-color="#10b981" stop-opacity="0.0" />
+      <stop offset="0%" stop-color="${stopColor}" stop-opacity="${stopOpacity}" />
+      <stop offset="100%" stop-color="${stopColor}" stop-opacity="0.0" />
     </linearGradient>
   `;
   svg.append(defs);
@@ -942,25 +989,19 @@ function renderSingleDateLineChart(container, points, report, tooltip, originalR
     return { x, y, p };
   });
 
-  // Area & Line Path
+  // Area & Line Path with Silky Bezier Splines
   if (coords.length > 1) {
-    const areaPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const lineD = getSmoothSplinePath(coords, padTop, plotH);
     const first = coords[0];
     const last = coords[coords.length - 1];
-    let d = `M ${first.x} ${first.y}`;
-    for (let i = 1; i < coords.length; i++) {
-      d += ` L ${coords[i].x} ${coords[i].y}`;
-    }
-    d += ` L ${last.x} ${padTop + plotH} L ${first.x} ${padTop + plotH} Z`;
-    areaPath.setAttribute('d', d);
+    const areaD = `${lineD} L ${last.x.toFixed(1)} ${padTop + plotH} L ${first.x.toFixed(1)} ${padTop + plotH} Z`;
+
+    const areaPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    areaPath.setAttribute('d', areaD);
     areaPath.setAttribute('fill', 'url(#hourly-area-gradient-single)');
     svg.append(areaPath);
 
     const linePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    let lineD = `M ${first.x} ${first.y}`;
-    for (let i = 1; i < coords.length; i++) {
-      lineD += ` L ${coords[i].x} ${coords[i].y}`;
-    }
     linePath.setAttribute('d', lineD);
     linePath.setAttribute('class', 'chart-line-path');
     svg.append(linePath);
@@ -1060,11 +1101,16 @@ function renderGroupedDatesLineChart(container, chronReports, tooltip, originalR
   svg.setAttribute('role', 'img');
   svg.setAttribute('aria-label', 'Hourly Productivity Grouped by Date');
 
+  const isUnslop = getThemeAttribute('data-theme-style') === 'unslop';
+  const isDark = getThemeAttribute('data-theme').includes('dark');
+  const stopColor = isUnslop ? (isDark ? '#2dd4bf' : '#0f766e') : '#10b981';
+  const stopOpacity = isUnslop ? (isDark ? '0.24' : '0.14') : '0.30';
+
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
   defs.innerHTML = `
     <linearGradient id="hourly-area-gradient-grouped" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#10b981" stop-opacity="0.30" />
-      <stop offset="100%" stop-color="#10b981" stop-opacity="0.0" />
+      <stop offset="0%" stop-color="${stopColor}" stop-opacity="${stopOpacity}" />
+      <stop offset="100%" stop-color="${stopColor}" stop-opacity="0.0" />
     </linearGradient>
   `;
   svg.append(defs);
@@ -1123,22 +1169,19 @@ function renderGroupedDatesLineChart(container, chronReports, tooltip, originalR
       return { x, y, p };
     });
 
-    // Day Area Path
+    // Day Area & Line Path with Silky Bezier Splines
     if (coords.length > 1) {
-      const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const lineD = getSmoothSplinePath(coords, padTop, plotH);
       const first = coords[0];
       const last = coords[coords.length - 1];
-      let d = `M ${first.x} ${first.y}`;
-      for (let k = 1; k < coords.length; k++) d += ` L ${coords[k].x} ${coords[k].y}`;
-      d += ` L ${last.x} ${padTop + plotH} L ${first.x} ${padTop + plotH} Z`;
-      area.setAttribute('d', d);
+      const areaD = `${lineD} L ${last.x.toFixed(1)} ${padTop + plotH} L ${first.x.toFixed(1)} ${padTop + plotH} Z`;
+
+      const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      area.setAttribute('d', areaD);
       area.setAttribute('fill', 'url(#hourly-area-gradient-grouped)');
       svg.append(area);
 
-      // Day Line Path
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      let lineD = `M ${first.x} ${first.y}`;
-      for (let k = 1; k < coords.length; k++) lineD += ` L ${coords[k].x} ${coords[k].y}`;
       line.setAttribute('d', lineD);
       line.setAttribute('class', 'chart-line-path');
       svg.append(line);
@@ -2101,6 +2144,7 @@ function filterAndRenderDashboard() {
   }
   renderDailyCasesBarChart(filtered);
   renderHourlyProductivityLineChart(filtered);
+  updateWelcomeTitle();
 }
 
 // ============================================================================
@@ -3526,6 +3570,34 @@ function updateOnboardingView() {
 function updateWelcomeTitle(name) {
   const welcomeTitle = $('welcome-title');
   if (!welcomeTitle) return;
+  const isUnslop = getThemeAttribute('data-theme-style') === 'unslop';
+  if (isUnslop) {
+    const eyebrow = document.querySelector('.welcome-header-text .step-eyebrow');
+    if (eyebrow) {
+      eyebrow.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.8"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> Overview`;
+    }
+    let periodText = '<span class="title-primary">Clinical</span> <span class="title-secondary">Telemetry</span>';
+    try {
+      const activeReport = typeof selectedChartDate !== 'undefined' && selectedChartDate
+        ? (rawReportsData || []).find(r => r.date === selectedChartDate)
+        : (rawReportsData || [])[0];
+      const targetDate = activeReport ? activeReport.date : (rawReportsData && rawReportsData[0] ? rawReportsData[0].date : null);
+      if (targetDate) {
+        const d = new Date(targetDate + 'T12:00:00Z');
+        if (!isNaN(d.getTime())) {
+          const m = d.toLocaleString('en-US', { month: 'long' });
+          const y = d.getFullYear();
+          periodText = `<span class="title-primary">${m}</span> <span class="title-secondary">${y}</span>`;
+        }
+      }
+    } catch (e) {}
+    welcomeTitle.innerHTML = periodText;
+    return;
+  }
+  const eyebrow = document.querySelector('.welcome-header-text .step-eyebrow');
+  if (eyebrow) {
+    eyebrow.textContent = 'Productivity Telemetry';
+  }
   const displayName = (name || currentUser?.name || '').trim();
   welcomeTitle.textContent = displayName ? `Welcome, ${displayName}` : 'Welcome';
 }

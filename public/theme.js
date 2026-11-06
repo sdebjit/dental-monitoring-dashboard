@@ -46,6 +46,9 @@ function applyTheme(theme, persist) {
   document.documentElement.setAttribute('data-theme-mode', isDark ? 'dark' : 'light');
   document.documentElement.setAttribute('data-theme-style', resolved.includes('unslop') ? 'unslop' : 'reui');
   updateThemeDropdownUI(resolved);
+  if (typeof updateWelcomeTitle === 'function') {
+    try { updateWelcomeTitle(); } catch (e) {}
+  }
 }
 
 function setTheme(pref) {
