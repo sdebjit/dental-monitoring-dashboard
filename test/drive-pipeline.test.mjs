@@ -145,3 +145,48 @@ test('accepts valid daily report format while ignoring an unrelated PDF alongsid
   assert.ok(!state.events.includes('archive:unrelated-doc-2'));
   assert.ok(!state.events.includes('error:unrelated-doc-2'));
 });
+
+test('handles parser returning null by skipping and marking ignored', async () => {
+  const fixture = fixtures();
+  fixture.parse = async () => null;
+  const res = await ingestFolder({ userId: 'alice', folderId: 'chosen-folder', ...fixture });
+  assert.equal(res.skipped, 1);
+  assert.equal(res.imported, 0);
+  assert.deepEqual(fixture.state.events, ['download', 'ignored']);
+});
+
+test('handles store without markIgnored method safely', async () => {
+  const fixture = fixtures();
+  fixture.parse = async () => null;
+  delete fixture.store.markIgnored;
+  const res = await ingestFolder({ userId: 'alice', folderId: 'chosen-folder', ...fixture });
+  assert.equal(res.skipped, 1);
+  assert.equal(res.imported, 0);
+});
+
+test('runs ingestFolder with default now generator', async () => {
+  const fixture = fixtures();
+  const res = await ingestFolder({ userId: 'alice', folderId: 'chosen-folder', drive: fixture.drive, store: fixture.store, parse: fixture.parse });
+  assert.equal(res.imported, 1);
+});
+
+test('handles markIgnored and recordFileError rejections gracefully', async () => {
+  const fixture = fixtures();
+
+  // 1. markIgnored rejects on null report
+  fixture.parse = async () => null;
+  fixture.store.markIgnored = async () => { throw new Error('Ignored write failed'); };
+  const resNull = await ingestFolder({ userId: 'alice', folderId: 'chosen-folder', ...fixture });
+  assert.equal(resNull.skipped, 1);
+
+  // 2. markIgnored rejects on unsupported PDF
+  fixture.parse = async () => { throw new Error('Daily Report Date is missing or uses an unsupported format.'); };
+  const resUnsupported = await ingestFolder({ userId: 'alice', folderId: 'chosen-folder', ...fixture });
+  assert.equal(resUnsupported.skipped, 1);
+
+  // 3. recordFileError rejects on unexpected parse failure
+  fixture.parse = async () => { throw new Error('Fatal corrupted buffer'); };
+  fixture.store.recordFileError = async () => { throw new Error('Error log write failed'); };
+  const resFatal = await ingestFolder({ userId: 'alice', folderId: 'chosen-folder', ...fixture });
+  assert.equal(resFatal.errors.length, 1);
+});

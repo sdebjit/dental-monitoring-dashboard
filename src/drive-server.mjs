@@ -404,7 +404,11 @@ export function createDriveServer({ env = process.env, store, access, fetcher = 
         const state = url.searchParams.get('state') || '';
         const cookieState = getOauthState(req);
         if (!state || state !== cookieState) throw new Error('Sign-in state did not match. Please try again.');
-        const codeVerifier = await store.consumeOauthState(state);
+        const rawVerifier = await store.consumeOauthState(state);
+        const codeVerifier = typeof rawVerifier === 'object' && rawVerifier !== null
+          ? (rawVerifier.codeVerifier || rawVerifier.verifier || '')
+          : (rawVerifier || '');
+        if (!codeVerifier) throw new Error('Sign-in state has expired. Please try again.');
         const token = await oauthToken(config, { code: url.searchParams.get('code') || '', code_verifier: codeVerifier, redirect_uri: `${config.base}/auth/callback`, grant_type: 'authorization_code' }, fetcher);
         const ticket = await verifier.verifyIdToken({ idToken: token.id_token, audience: config.clientId });
         let profile = ticket.getPayload();
@@ -639,9 +643,15 @@ export function createDriveServer({ env = process.env, store, access, fetcher = 
   return { server, config, scan };
 }
 
+export function startServer(options = {}) {
+  const { server, config } = createDriveServer(options);
+  return server.listen(config.port, '0.0.0.0', () => console.log(`Daybook listening on port ${config.port}`));
+}
+
+/* node:coverage disable */
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   try {
-    const { server, config } = createDriveServer();
-    server.listen(config.port, '0.0.0.0', () => console.log(`Daybook listening on port ${config.port}`));
+    startServer();
   } catch (error) { console.error(error.message); process.exitCode = 1; }
 }
+/* node:coverage enable */

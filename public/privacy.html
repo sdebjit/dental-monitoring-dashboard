@@ -31,6 +31,26 @@
       margin-bottom: 24px;
       display: block;
     }
+    .terms-nav-tabs {
+      display: flex;
+      gap: 12px;
+      border-bottom: 1px solid var(--zinc-200, #e4e4e7);
+      margin-bottom: 28px;
+      padding-bottom: 8px;
+    }
+    .terms-nav-tab {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--zinc-600, #52525b);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm, 6px);
+      transition: all 0.15s ease;
+    }
+    .terms-nav-tab.active, .terms-nav-tab:hover {
+      color: var(--zinc-950, #09090b);
+      background: var(--zinc-100, #f4f4f5);
+    }
     .terms-section {
       margin-bottom: 32px;
     }
@@ -98,43 +118,54 @@
       text-decoration: underline;
       text-underline-offset: 2px;
     }
-    [data-theme="dark"] .terms-card h1,
-    [data-theme="dark"] .terms-section h2,
-    [data-theme="dark"] .terms-section h3,
-    [data-theme="dark"] .terms-section strong {
+    [data-theme*="dark"] .terms-card h1,
+    [data-theme*="dark"] .terms-section h2,
+    [data-theme*="dark"] .terms-section h3,
+    [data-theme*="dark"] .terms-section strong {
       color: #ffffff;
     }
-    [data-theme="dark"] .terms-section p,
-    [data-theme="dark"] .terms-section ul,
-    [data-theme="dark"] .terms-section ol,
-    [data-theme="dark"] .terms-section li {
+    [data-theme*="dark"] .terms-section p,
+    [data-theme*="dark"] .terms-section ul,
+    [data-theme*="dark"] .terms-section ol,
+    [data-theme*="dark"] .terms-section li {
       color: #d4d4d8;
     }
-    [data-theme="dark"] .terms-card .updated {
+    [data-theme*="dark"] .terms-card .updated {
       color: #71717a;
     }
-    [data-theme="dark"] .terms-callout {
+    [data-theme*="dark"] .terms-nav-tabs {
+      border-color: #27272a;
+    }
+    [data-theme*="dark"] .terms-nav-tab {
+      color: #a1a1aa;
+    }
+    [data-theme*="dark"] .terms-nav-tab.active,
+    [data-theme*="dark"] .terms-nav-tab:hover {
+      color: #ffffff;
+      background: #27272a;
+    }
+    [data-theme*="dark"] .terms-callout {
       background: #18181b;
       border-color: #27272a;
       border-left-color: #3b82f6;
     }
-    [data-theme="dark"] .terms-callout p {
+    [data-theme*="dark"] .terms-callout p {
       color: #e4e4e7;
     }
-    [data-theme="dark"] .terms-callout.highlight {
+    [data-theme*="dark"] .terms-callout.highlight {
       background: #052e16;
       border-color: #166534;
       border-left-color: #22c55e;
     }
-    [data-theme="dark"] .terms-callout.highlight p {
+    [data-theme*="dark"] .terms-callout.highlight p {
       color: #bbf7d0;
     }
-    [data-theme="dark"] .terms-section code {
+    [data-theme*="dark"] .terms-section code {
       background: #1f1f23;
       border-color: #27272a;
       color: #f4f4f5;
     }
-    [data-theme="dark"] .terms-section a {
+    [data-theme*="dark"] .terms-section a {
       color: #60a5fa;
     }
     @media (max-width: 600px) {
@@ -178,7 +209,12 @@
 
     <article class="card terms-card">
       <h1>Privacy Policy</h1>
-      <span class="updated">Last updated and effective: October 30, 2026</span>
+      <span class="updated">Last updated and effective: November 5, 2026</span>
+
+      <nav class="terms-nav-tabs" aria-label="Legal navigation">
+        <a href="/privacy" class="terms-nav-tab active">Privacy Policy</a>
+        <a href="/terms" class="terms-nav-tab">Terms of Service</a>
+      </nav>
 
       <div class="terms-section">
         <h2>1. Application Identity &amp; Scope</h2>
